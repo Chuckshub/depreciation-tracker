@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Asset } from '@/types/asset';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 
@@ -279,6 +280,12 @@ export default function ReconciliationPage() {
             >
               Add Asset
             </button>
+            <Link
+              href="/upload"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center"
+            >
+              📁 Upload CSV
+            </Link>
             <button
               onClick={navigateToRollforward}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"

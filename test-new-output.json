@@ -1,0 +1,133 @@
+{
+  "assets": [
+    {
+      "id": "1yh3h4mmb",
+      "asset": "Kyle Carberry (Amazon)",
+      "dateInPlace": "2023-02-01T00:00:00.000Z",
+      "account": "15003 - Computer Equipment",
+      "department": "Research & Development : Research Engineering",
+      "cost": 1517.21,
+      "lifeMonths": 36,
+      "monthlyDep": 42.14,
+      "accumDep": 1222,
+      "nbv": 295.21,
+      "depSchedule": {
+        "1/1/2023": 42.31,
+        "2/1/2023": 42.14,
+        "3/1/2023": 42.14,
+        "4/1/2023": 42.14,
+        "5/1/2023": 42.14,
+        "6/1/2023": 42.14,
+        "7/1/2023": 42.14,
+        "8/1/2023": 42.14,
+        "9/1/2023": 42.14,
+        "10/1/2023": 42.14,
+        "11/1/2023": 42.14,
+        "12/1/2023": 42.14,
+        "1/1/2024": 42.14,
+        "2/1/2024": 42.14,
+        "3/1/2024": 42.14
+      }
+    },
+    {
+      "id": "s5y0nlblh",
+      "asset": "Computer Equipment",
+      "dateInPlace": "2023-05-01T00:00:00.000Z",
+      "account": "15003 - Computer Equipment",
+      "department": "Research & Development : Enterprise Engineering",
+      "cost": 2147.95,
+      "lifeMonths": 36,
+      "monthlyDep": 59.67,
+      "accumDep": 1551,
+      "nbv": 596.95,
+      "depSchedule": {
+        "5/1/2023": 59.67,
+        "6/1/2023": 59.67,
+        "7/1/2023": 59.67,
+        "8/1/2023": 59.67,
+        "9/1/2023": 59.67,
+        "10/1/2023": 59.67,
+        "11/1/2023": 59.67,
+        "12/1/2023": 59.67,
+        "1/1/2024": 59.67,
+        "2/1/2024": 59.67,
+        "3/1/2024": 59.67
+      }
+    },
+    {
+      "id": "ntzf831ey",
+      "asset": "Computer Device",
+      "dateInPlace": "2023-05-01T00:00:00.000Z",
+      "account": "15003 - Computer Equipment",
+      "department": "General & Administrative : CEO Office",
+      "cost": 2719.18,
+      "lifeMonths": 36,
+      "monthlyDep": 75.53,
+      "accumDep": 1964,
+      "nbv": 755.18,
+      "depSchedule": {
+        "5/1/2023": 75.53,
+        "6/1/2023": 75.53,
+        "7/1/2023": 75.53,
+        "8/1/2023": 75.53,
+        "9/1/2023": 75.53,
+        "10/1/2023": 75.53,
+        "11/1/2023": 75.53,
+        "12/1/2023": 75.53,
+        "1/1/2024": 75.53,
+        "2/1/2024": 75.53,
+        "3/1/2024": 75.53
+      }
+    },
+    {
+      "id": "hytkwgr00",
+      "asset": "Michael Eanes (Amazon)",
+      "dateInPlace": "2023-08-01T00:00:00.000Z",
+      "account": "15003 - Computer Equipment",
+      "department": "Research & Development : Enterprise Engineering",
+      "cost": 2052.91,
+      "lifeMonths": 36,
+      "monthlyDep": 57.03,
+      "accumDep": 1312,
+      "nbv": 740.91,
+      "depSchedule": {
+        "8/1/2023": 57.03,
+        "9/1/2023": 57.03,
+        "10/1/2023": 57.03,
+        "11/1/2023": 57.03,
+        "12/1/2023": 57.03,
+        "1/1/2024": 57.03,
+        "2/1/2024": 57.03,
+        "3/1/2024": 57.03
+      }
+    },
+    {
+      "id": "b3vk12qar",
+      "asset": "Michael Eanes (Apple)",
+      "dateInPlace": "2023-08-01T00:00:00.000Z",
+      "account": "15003 - Computer Equipment",
+      "department": "General & Administrative : People",
+      "cost": 2932.88,
+      "lifeMonths": 36,
+      "monthlyDep": 81.47,
+      "accumDep": 1874,
+      "nbv": 1058.88,
+      "depSchedule": {
+        "8/1/2023": 81.47,
+        "9/1/2023": 81.47,
+        "10/1/2023": 81.47,
+        "11/1/2023": 81.47,
+        "12/1/2023": 81.47,
+        "1/1/2024": 81.47,
+        "2/1/2024": 81.47,
+        "3/1/2024": 81.47
+      }
+    }
+  ],
+  "metadata": {
+    "totalAssets": 5,
+    "importDate": "2025-07-15T23:56:11.297Z",
+    "source": "New Format CSV Test",
+    "errors": []
+  }
+}
