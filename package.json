@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "import:csv": "ts-node scripts/data-import.ts",
+    "import:json": "ts-node scripts/data-import.ts --json",
+    "parse:csv": "ts-node scripts/csv-parser.ts",
+    "db:stats": "ts-node scripts/data-import.ts --stats",
+    "db:clear": "ts-node scripts/data-import.ts --clear"
   },
   "dependencies": {
     "firebase": "^11.10.0",
@@ -20,9 +25,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

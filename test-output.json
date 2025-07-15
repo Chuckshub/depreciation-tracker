@@ -1,0 +1,90 @@
+{
+  "assets": [
+    {
+      "id": "dllkn4atz",
+      "asset": "Computer Equipment - Dell Laptop",
+      "dateInPlace": "2024-01-15T00:00:00.000Z",
+      "account": "Equipment",
+      "department": "IT",
+      "cost": 5000,
+      "lifeMonths": 36,
+      "monthlyDep": 138.89,
+      "accumDep": 416.67,
+      "nbv": 4583.33,
+      "depSchedule": {
+        "01/01/2024": 138.89,
+        "02/01/2024": 138.89,
+        "03/01/2024": 138.89
+      }
+    },
+    {
+      "id": "9v95pb0wk",
+      "asset": "Office Furniture - Standing Desk",
+      "dateInPlace": "2024-02-01T00:00:00.000Z",
+      "account": "Furniture",
+      "department": "Admin",
+      "cost": 2000,
+      "lifeMonths": 60,
+      "monthlyDep": 33.33,
+      "accumDep": 66.66,
+      "nbv": 1933.34,
+      "depSchedule": {
+        "02/01/2024": 33.33,
+        "03/01/2024": 33.33
+      }
+    },
+    {
+      "id": "xssx04pcc",
+      "asset": "Vehicle - Company Car",
+      "dateInPlace": "2024-03-01T00:00:00.000Z",
+      "account": "Vehicles",
+      "department": "Sales",
+      "cost": 25000,
+      "lifeMonths": 60,
+      "monthlyDep": 416.67,
+      "accumDep": 416.67,
+      "nbv": 24583.33,
+      "depSchedule": {
+        "03/01/2024": 416.67
+      }
+    },
+    {
+      "id": "4l3cfsus8",
+      "asset": "Software License - Adobe Creative",
+      "dateInPlace": "2024-01-01T00:00:00.000Z",
+      "account": "Software",
+      "department": "Marketing",
+      "cost": 1200,
+      "lifeMonths": 12,
+      "monthlyDep": 100,
+      "accumDep": 300,
+      "nbv": 900,
+      "depSchedule": {
+        "01/01/2024": 100,
+        "02/01/2024": 100,
+        "03/01/2024": 100
+      }
+    },
+    {
+      "id": "yrfohn6t2",
+      "asset": "Manufacturing Equipment - 3D Printer",
+      "dateInPlace": "2024-02-15T00:00:00.000Z",
+      "account": "Equipment",
+      "department": "Production",
+      "cost": 8000,
+      "lifeMonths": 84,
+      "monthlyDep": 95.24,
+      "accumDep": 190.48,
+      "nbv": 7809.52,
+      "depSchedule": {
+        "02/01/2024": 95.24,
+        "03/01/2024": 95.24
+      }
+    }
+  ],
+  "metadata": {
+    "totalAssets": 5,
+    "importDate": "2025-07-15T23:47:52.667Z",
+    "source": "CSV Test"
+  }
+}
