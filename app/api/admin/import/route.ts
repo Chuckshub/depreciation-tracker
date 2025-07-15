@@ -3,6 +3,17 @@ import { collection, getDocs, deleteDoc, addDoc, doc } from 'firebase/firestore'
 import { db } from '../../../../lib/firebase';
 import { Asset } from '../../../../types/asset';
 
+interface ValidationError {
+  index: number;
+  errors: string[];
+}
+
+interface ImportError {
+  index: number;
+  asset: string;
+  error: string;
+}
+
 // This is a simple admin endpoint - in production, you should add proper authentication
 // For now, we'll use a simple API key check
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'dev-admin-key';
@@ -118,7 +129,7 @@ async function handleImport(assets: Asset[], clearExisting: boolean): Promise<Ne
   
   // Validate assets
   const validAssets: Asset[] = [];
-  const invalidAssets: any[] = [];
+  const invalidAssets: ValidationError[] = [];
   
   assets.forEach((asset, index) => {
     const errors: string[] = [];
@@ -149,7 +160,7 @@ async function handleImport(assets: Asset[], clearExisting: boolean): Promise<Ne
   // Import valid assets
   const collectionRef = collection(db, 'assets');
   let importedCount = 0;
-  const importErrors: any[] = [];
+  const importErrors: ImportError[] = [];
   
   // Import in batches
   const batchSize = 10;
