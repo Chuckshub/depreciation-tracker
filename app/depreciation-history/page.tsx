@@ -28,7 +28,7 @@ export default function DepreciationHistoryPage() {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('/depreciation_prod.json');
+        const response = await fetch('/api/assets');
         if (!response.ok) {
           throw new Error(`Failed to fetch assets: ${response.status} ${response.statusText}`);
         }
