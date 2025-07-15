@@ -17,7 +17,7 @@ interface UploadResult {
   message: string;
   summary?: UploadSummary;
   errors?: string[];
-  invalidAssets?: Array<{ asset: any, errors: string[] }>;
+  invalidAssets?: Array<{ asset: { asset: string; cost: number; lifeMonths: number; [key: string]: any }, errors: string[] }>;
 }
 
 export default function UploadPage() {

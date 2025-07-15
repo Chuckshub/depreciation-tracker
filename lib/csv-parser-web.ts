@@ -23,7 +23,7 @@ export class WebCSVParser {
     }
 
     // Handle various date formats
-    let cleanDate = dateStr.trim();
+    const cleanDate = dateStr.trim();
     
     // Handle MM/DD/YY format
     if (cleanDate.match(/^\d{1,2}\/\d{1,2}\/\d{2}$/)) {

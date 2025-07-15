@@ -104,7 +104,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
     for (let i = 0; i < valid.length; i += batchSize) {
       const batch = valid.slice(i, i + batchSize);
       
-      const importPromises = batch.map(async (asset, batchIndex) => {
+      const importPromises = batch.map(async (asset) => {
         try {
           await addDoc(collectionRef, asset);
           importedCount++;
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
 }
 
 // Handle OPTIONS request for CORS
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
