@@ -13,7 +13,7 @@ interface AddAssetFormProps {
     cost: number;
     lifeMonths: number;
     dateInPlace?: string;
-  }) => Promise<any>;
+  }) => Promise<{ success: boolean; asset: Asset; totalAssets: number }>;
   onCancel: () => void;
   isSubmitting: boolean;
 }
