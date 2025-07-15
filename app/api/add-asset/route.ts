@@ -1,5 +1,6 @@
-import { kv } from '@vercel/kv';
 import { NextRequest, NextResponse } from 'next/server';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { db } from '../../../lib/firebase';
 import type { Asset } from '../../../types/asset';
 
 function generateDepreciationSchedule(monthlyDep: number, dateInPlace: string, lifeMonths: number): Record<string, number> {
@@ -45,8 +46,13 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Get existing assets from KV
-    let existingAssets: Asset[] = await kv.get('assets') || [];
+    // Get existing assets from Firestore
+    const assetsCollection = collection(db, 'assets');
+    const assetsSnapshot = await getDocs(assetsCollection);
+    const existingAssets: Asset[] = assetsSnapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.data().id || doc.id
+    })) as Asset[];
     
     // Calculate depreciation values
     const monthlyDep = cost / lifeMonths;
@@ -78,16 +84,13 @@ export async function POST(request: NextRequest) {
       depSchedule: generateDepreciationSchedule(monthlyDep, assetDateInPlace, parseInt(lifeMonths))
     };
     
-    // Add to existing assets
-    const updatedAssets = [...existingAssets, newAsset];
-    
-    // Save back to KV
-    await kv.set('assets', updatedAssets);
+    // Add new asset to Firestore
+    await addDoc(assetsCollection, newAsset);
     
     return NextResponse.json({ 
       success: true, 
       asset: newAsset,
-      totalAssets: updatedAssets.length 
+      totalAssets: existingAssets.length + 1
     });
     
   } catch (error) {

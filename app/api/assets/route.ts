@@ -1,5 +1,6 @@
-import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { db } from '../../../lib/firebase';
 import type { Asset } from '../../../types/asset';
 
 // Sample assets to initialize KV if empty
@@ -164,20 +165,31 @@ const sampleAssets: Asset[] = [
 
 export async function GET() {
   try {
-    // Try to get assets from KV
-    let assets: Asset[] | null = await kv.get('assets');
+    // Try to get assets from Firestore
+    const assetsCollection = collection(db, 'assets');
+    const assetsSnapshot = await getDocs(assetsCollection);
     
-    // If no assets exist, initialize with sample data
-    if (!assets || assets.length === 0) {
-      await kv.set('assets', sampleAssets);
+    let assets: Asset[] = [];
+    
+    if (assetsSnapshot.empty) {
+      // If no assets exist, initialize with sample data
+      for (const sampleAsset of sampleAssets) {
+        await addDoc(assetsCollection, sampleAsset);
+      }
       assets = sampleAssets;
+    } else {
+      // Convert Firestore documents to Asset objects
+      assets = assetsSnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.data().id || doc.id // Use the asset's id field or fallback to doc id
+      })) as Asset[];
     }
     
     return NextResponse.json({ assets });
   } catch (error) {
     console.error('Error fetching assets:', error);
     
-    // Fallback to sample data if KV is not available
+    // Fallback to sample data if Firestore is not available
     return NextResponse.json({ assets: sampleAssets });
   }
 }
