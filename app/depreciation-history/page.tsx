@@ -92,7 +92,7 @@ export default function DepreciationHistoryPage() {
         // Fetch assets and GL balances in parallel
         const [assetsResponse, glBalancesResponse] = await Promise.all([
           fetch(`/api/assets?assetType=${activeTab}`),
-          fetch('/api/gl-balances')
+          fetch(`/api/gl-balances?assetType=${activeTab}`)
         ]);
         
         if (!assetsResponse.ok) {
@@ -184,7 +184,7 @@ export default function DepreciationHistoryPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ glBalances }),
+        body: JSON.stringify({ glBalances, assetType: activeTab }),
       });
 
       // Prepare data for Excel export

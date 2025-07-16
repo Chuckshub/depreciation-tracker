@@ -17,8 +17,6 @@ interface JournalEntry {
   lineMemo: string;
   entity: string;
   department: string;
-  class: string;
-  location: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -136,9 +134,7 @@ function generateJournalEntries(data: ExportData): JournalEntry[] {
       credit: 0,
       lineMemo: 'Monthly depreciation expense',
       entity: 'Coder Technologies',
-      department: 'General & Administrative',
-      class: 'Operating Expense',
-      location: 'Main Office'
+      department: 'General & Administrative'
     });
     
     // Credit: Accumulated Depreciation - Computer Equipment
@@ -148,9 +144,7 @@ function generateJournalEntries(data: ExportData): JournalEntry[] {
       credit: totalDepreciation,
       lineMemo: 'Monthly depreciation expense',
       entity: 'Coder Technologies',
-      department: 'General & Administrative',
-      class: 'Contra Asset',
-      location: 'Main Office'
+      department: 'General & Administrative'
     });
   }
   
@@ -174,7 +168,7 @@ function createCSVContent(csvData: { headers: string[], rows: string[][] }, jour
   
   // Add journal entries section
   content += '\n\nJOURNAL ENTRIES\n';
-  content += 'Account,Debit,Credit,Line Memo,Entity,Department,Class,Location\n';
+  content += 'Account,Debit,Credit,Line Memo,Entity,Department\n';
   
   journalEntries.forEach(entry => {
     content += [
@@ -183,9 +177,7 @@ function createCSVContent(csvData: { headers: string[], rows: string[][] }, jour
       entry.credit.toFixed(2),
       `"${entry.lineMemo}"`,
       `"${entry.entity}"`,
-      `"${entry.department}"`,
-      `"${entry.class}"`,
-      `"${entry.location}"`
+      `"${entry.department}"`
     ].join(',') + '\n';
   });
   

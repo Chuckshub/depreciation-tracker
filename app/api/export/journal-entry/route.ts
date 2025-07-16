@@ -13,8 +13,6 @@ interface JournalEntry {
   lineMemo: string;
   entity: string;
   department: string;
-  class: string;
-  location: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -75,9 +73,7 @@ function generateJournalEntriesByDepartment(data: JEExportData): JournalEntry[] 
         credit: 0,
         lineMemo: `${department} depreciation for ${formatMonthYear(selectedMonth)}`,
         entity: 'Coder Technologies',
-        department: department,
-        class: 'Operating Expense',
-        location: 'Main Office'
+        department: department
       });
       
       // Credit: Different accumulated depreciation accounts based on asset type
@@ -91,9 +87,7 @@ function generateJournalEntriesByDepartment(data: JEExportData): JournalEntry[] 
         credit: total,
         lineMemo: `${department} depreciation for ${formatMonthYear(selectedMonth)}`,
         entity: 'Coder Technologies',
-        department: department,
-        class: 'Contra Asset',
-        location: 'Main Office'
+        department: department
       });
     }
   });
@@ -114,7 +108,7 @@ function createJECSVContent(journalEntries: JournalEntry[], selectedMonth: strin
   content += `Generated: ${new Date().toLocaleDateString('en-US')}\n\n`;
   
   // Add CSV headers
-  content += 'Account,Debit,Credit,Line Memo,Entity,Department,Class,Location\n';
+  content += 'Account,Debit,Credit,Line Memo,Entity,Department\n';
   
   // Add journal entries
   journalEntries.forEach(entry => {
@@ -124,9 +118,7 @@ function createJECSVContent(journalEntries: JournalEntry[], selectedMonth: strin
       entry.credit.toFixed(2),
       `"${entry.lineMemo}"`,
       `"${entry.entity}"`,
-      `"${entry.department}"`,
-      `"${entry.class}"`,
-      `"${entry.location}"`
+      `"${entry.department}"`
     ].join(',') + '\n';
   });
   

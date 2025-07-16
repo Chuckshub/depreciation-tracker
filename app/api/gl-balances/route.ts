@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
+import { AssetType } from '../../../types/asset';
 
 interface GLBalancesData {
   glBalances: Record<string, number>;
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    const { glBalances } = await request.json();
+    const { glBalances, assetType } = await request.json();
     
     if (!glBalances || typeof glBalances !== 'object') {
       return NextResponse.json({
@@ -26,8 +27,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Save GL balances to Firestore
-    const glBalancesRef = doc(db, 'settings', 'gl-balances');
+    const validAssetType = assetType || 'computer-equipment';
+
+    // Save GL balances to Firestore with asset type specificity
+    const glBalancesRef = doc(db, 'settings', `gl-balances-${validAssetType}`);
     const glBalancesData: GLBalancesData = {
       glBalances,
       lastUpdated: new Date().toISOString()
@@ -52,8 +55,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const assetType = (searchParams.get('assetType') as AssetType) || 'computer-equipment';
+    
     // Check if Firebase is properly configured
     if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
       return NextResponse.json({
@@ -63,8 +69,8 @@ export async function GET() {
       });
     }
 
-    // Get GL balances from Firestore
-    const glBalancesRef = doc(db, 'settings', 'gl-balances');
+    // Get GL balances from Firestore for specific asset type
+    const glBalancesRef = doc(db, 'settings', `gl-balances-${assetType}`);
     const glBalancesDoc = await getDoc(glBalancesRef);
 
     if (glBalancesDoc.exists()) {
