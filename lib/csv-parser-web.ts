@@ -1,4 +1,4 @@
-import { Asset } from '../types/asset';
+import { Asset, AssetType } from '../types/asset';
 
 interface CSVRow {
   [key: string]: string;
@@ -188,7 +188,7 @@ export class WebCSVParser {
     return assetName || 'Computer Equipment';
   }
 
-  public static parseCSVToAssets(csvContent: string): { assets: Asset[], errors: string[] } {
+  public static parseCSVToAssets(csvContent: string, assetType: AssetType = 'computer-equipment'): { assets: Asset[], errors: string[] } {
     const errors: string[] = [];
     const assets: Asset[] = [];
     
@@ -234,7 +234,7 @@ export class WebCSVParser {
             monthlyDep: Math.abs(monthlyDep),
             accumDep: Math.abs(accumDep),
             nbv: nbv,
-            assetType: 'computer-equipment', // Default to computer equipment for CSV imports
+            assetType: assetType, // Use the selected asset type
             depSchedule: this.buildDepreciationSchedule(row, headers)
           };
           

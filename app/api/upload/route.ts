@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { collection, getDocs, deleteDoc, addDoc, doc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { Asset } from '../../../types/asset';
+import { Asset, AssetType } from '../../../types/asset';
 import { WebCSVParser } from '../../../lib/csv-parser-web';
 
 interface UploadResponse {
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const assetType = (formData.get('assetType') as AssetType) || 'computer-equipment';
     const clearExisting = formData.get('clearExisting') === 'true';
     
     if (!file) {
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
     console.log(`Processing CSV file: ${file.name} (${file.size} bytes)`);
     
     // Parse CSV content
-    const { assets, errors: parseErrors } = WebCSVParser.parseCSVToAssets(csvContent);
+    const { assets, errors: parseErrors } = WebCSVParser.parseCSVToAssets(csvContent, assetType);
     
     if (assets.length === 0) {
       return NextResponse.json({

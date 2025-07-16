@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { AssetType } from '@/types/asset';
 
 interface UploadSummary {
   totalRows: number;
@@ -22,6 +23,7 @@ interface UploadResult {
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [assetType, setAssetType] = useState<AssetType>('computer-equipment');
   const [clearExisting, setClearExisting] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
@@ -68,6 +70,7 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('assetType', assetType);
       formData.append('clearExisting', clearExisting.toString());
 
       const response = await fetch('/api/upload', {
@@ -188,6 +191,25 @@ export default function UploadPage() {
 
           {/* Options */}
           <div className="mt-6">
+            {/* Asset Type Selector */}
+            <div className="mb-4">
+              <label htmlFor="asset-type" className="block text-sm font-medium text-gray-700 mb-2">
+                Asset Type
+              </label>
+              <select
+                id="asset-type"
+                value={assetType}
+                onChange={(e) => setAssetType(e.target.value as AssetType)}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              >
+                <option value="computer-equipment">Computer Equipment</option>
+                <option value="furniture">Furniture</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Select the type of assets you&apos;re uploading
+              </p>
+            </div>
+            
             <div className="flex items-center">
               <input
                 id="clear-existing"
