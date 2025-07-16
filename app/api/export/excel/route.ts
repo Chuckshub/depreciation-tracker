@@ -145,7 +145,7 @@ function generateJournalEntries(data: ExportData): JournalEntry[] {
       account: '15003-1 - Accumulated Depreciation - Computer Equipment',
       debit: 0,
       credit: totalDepreciation,
-      lineMemo: 'Monthly accumulated depreciation',
+      lineMemo: 'Monthly depreciation expense',
       entity: 'Coder Technologies',
       department: 'General & Administrative',
       class: 'Contra Asset',
