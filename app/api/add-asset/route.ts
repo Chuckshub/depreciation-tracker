@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
       monthlyDep: Math.round(monthlyDep * 100) / 100,
       accumDep: Math.round(accumDep * 100) / 100,
       nbv: Math.round(nbv * 100) / 100,
+      assetType: 'computer-equipment', // Default to computer equipment for now
       depSchedule: generateDepreciationSchedule(monthlyDep, assetDateInPlace, parseInt(lifeMonths))
     };
     

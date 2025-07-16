@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import type { Asset } from '../../../types/asset';
+import type { Asset, AssetType } from '../../../types/asset';
 
 // Sample assets to initialize KV if empty
 const sampleAssets: Asset[] = [
@@ -16,6 +16,7 @@ const sampleAssets: Asset[] = [
     monthlyDep: 42.14,
     accumDep: 1222,
     nbv: 295.21,
+    assetType: 'computer-equipment' as AssetType,
     depSchedule: {
       "01/01/2025": 42.14,
       "02/01/2025": 42.14,
@@ -42,6 +43,7 @@ const sampleAssets: Asset[] = [
     monthlyDep: 59.67,
     accumDep: 1551,
     nbv: 596.95,
+    assetType: 'computer-equipment' as AssetType,
     depSchedule: {
       "01/01/2025": 59.67,
       "02/01/2025": 59.67,
@@ -68,6 +70,7 @@ const sampleAssets: Asset[] = [
     monthlyDep: 75.53,
     accumDep: 1964,
     nbv: 755.18,
+    assetType: 'computer-equipment' as AssetType,
     depSchedule: {
       "01/01/2025": 75.53,
       "02/01/2025": 75.53,
@@ -94,6 +97,7 @@ const sampleAssets: Asset[] = [
     monthlyDep: 43.04,
     accumDep: 1076,
     nbv: 473.42,
+    assetType: 'computer-equipment' as AssetType,
     depSchedule: {
       "01/01/2025": 43.04,
       "02/01/2025": 43.04,
@@ -120,6 +124,7 @@ const sampleAssets: Asset[] = [
     monthlyDep: 42.07,
     accumDep: 1052,
     nbv: 462.42,
+    assetType: 'computer-equipment' as AssetType,
     depSchedule: {
       "01/01/2025": 42.07,
       "02/01/2025": 42.07,
@@ -146,6 +151,7 @@ const sampleAssets: Asset[] = [
     monthlyDep: 49.33,
     accumDep: 1184,
     nbv: 591.91,
+    assetType: 'computer-equipment' as AssetType,
     depSchedule: {
       "01/01/2025": 49.33,
       "02/01/2025": 49.33,
@@ -163,12 +169,18 @@ const sampleAssets: Asset[] = [
   }
 ];
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const assetType = searchParams.get('assetType') as AssetType | null;
+    
     // Check if Firebase is properly configured
     if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
       console.warn('Firebase not configured, returning sample data');
-      return NextResponse.json({ assets: sampleAssets });
+      const filteredAssets = assetType 
+        ? sampleAssets.filter(asset => asset.assetType === assetType)
+        : sampleAssets;
+      return NextResponse.json({ assets: filteredAssets });
     }
 
     // Try to get assets from Firestore
@@ -189,6 +201,11 @@ export async function GET() {
         ...doc.data(),
         id: doc.data().id || doc.id // Use the asset's id field or fallback to doc id
       })) as Asset[];
+      
+      // Filter by asset type if specified
+      if (assetType) {
+        assets = assets.filter(asset => asset.assetType === assetType);
+      }
     }
     
     return NextResponse.json({ assets });

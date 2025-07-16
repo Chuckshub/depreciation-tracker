@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Asset } from '@/types/asset';
+import { Asset, AssetType } from '@/types/asset';
 import { formatCurrency, get2025MonthKeys, getMonthName } from '@/utils/formatters';
 
 interface EditableGLCellProps {
@@ -78,6 +78,7 @@ export default function DepreciationHistoryPage() {
   const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [selectedJEMonth, setSelectedJEMonth] = useState<string>('');
   const [downloadingJE, setDownloadingJE] = useState(false);
+  const [activeTab, setActiveTab] = useState<AssetType>('computer-equipment');
   const router = useRouter();
 
   const monthKeys = get2025MonthKeys();
@@ -90,7 +91,7 @@ export default function DepreciationHistoryPage() {
         
         // Fetch assets and GL balances in parallel
         const [assetsResponse, glBalancesResponse] = await Promise.all([
-          fetch('/api/assets'),
+          fetch(`/api/assets?assetType=${activeTab}`),
           fetch('/api/gl-balances')
         ]);
         
@@ -120,7 +121,7 @@ export default function DepreciationHistoryPage() {
     };
 
     fetchData();
-  }, []);
+  }, [activeTab]);
 
   // Calculate depreciation amount for a specific month
   const getDepreciationForMonth = useCallback((asset: Asset, monthKey: string): number => {
@@ -361,9 +362,39 @@ export default function DepreciationHistoryPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-full mx-auto">
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('computer-equipment')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'computer-equipment'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Computer Equipment
+              </button>
+              <button
+                onClick={() => setActiveTab('furniture')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'furniture'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Furniture
+              </button>
+            </nav>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">2025 Depreciation Rollforward</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            2025 {activeTab === 'computer-equipment' ? 'Computer Equipment' : 'Furniture'} Depreciation Rollforward
+          </h1>
           <div className="flex gap-4">
             <button
               onClick={navigateToReconciliation}

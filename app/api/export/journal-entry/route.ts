@@ -62,6 +62,9 @@ function generateJournalEntriesByDepartment(data: JEExportData): JournalEntry[] 
     }
   });
   
+  // Determine asset type from the first asset (assuming all assets in the request are the same type)
+  const assetType = assets.length > 0 ? assets[0].assetType : 'computer-equipment';
+  
   // Create journal entries for each department
   Object.entries(departmentTotals).forEach(([department, total]) => {
     if (total > 0) {
@@ -77,9 +80,13 @@ function generateJournalEntriesByDepartment(data: JEExportData): JournalEntry[] 
         location: 'Main Office'
       });
       
-      // Credit: Accumulated Depreciation - Computer Equipment
+      // Credit: Different accumulated depreciation accounts based on asset type
+      const accumulatedDepAccount = assetType === 'furniture' 
+        ? '15000-1 - Accumulated Depreciation - Furniture and Equipment'
+        : '15003-1 - Accumulated Depreciation - Computer Equipment';
+      
       entries.push({
-        account: '15003-1 - Accumulated Depreciation - Computer Equipment',
+        account: accumulatedDepAccount,
         debit: 0,
         credit: total,
         lineMemo: `${department} depreciation for ${formatMonthYear(selectedMonth)}`,

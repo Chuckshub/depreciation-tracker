@@ -1,3 +1,5 @@
+export type AssetType = 'computer-equipment' | 'furniture';
+
 export interface Asset {
   id: string;
   asset: string;
@@ -9,6 +11,7 @@ export interface Asset {
   monthlyDep: number;
   accumDep: number;
   nbv: number;
+  assetType: AssetType;
   depSchedule: Record<string, number>; // MM/DD/YYYY -> depreciation amount
 }
 

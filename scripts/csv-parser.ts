@@ -136,6 +136,7 @@ export class CSVParser {
             monthlyDep: this.parseNumber(row['Monthly Dep'] || '0'),
             accumDep: this.parseNumber(row['Accum Dep'] || '0'),
             nbv: this.parseNumber(row['NBV'] || '0'),
+            assetType: 'computer-equipment', // Default to computer equipment for script imports
             depSchedule: this.buildDepreciationSchedule(row, headers)
           };
           

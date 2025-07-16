@@ -234,6 +234,7 @@ export class WebCSVParser {
             monthlyDep: Math.abs(monthlyDep),
             accumDep: Math.abs(accumDep),
             nbv: nbv,
+            assetType: 'computer-equipment', // Default to computer equipment for CSV imports
             depSchedule: this.buildDepreciationSchedule(row, headers)
           };
           
