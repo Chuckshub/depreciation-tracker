@@ -4,9 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
-  BarChart3,
   Calculator,
-  FileText,
+  CreditCard,
   Home,
   Settings,
   TrendingUp,
@@ -18,9 +17,8 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Assets", href: "/dashboard/assets", icon: Calculator },
   { name: "Depreciation History", href: "/dashboard/depreciation-history", icon: TrendingUp },
+  { name: "Prepaids", href: "/dashboard/prepaids", icon: CreditCard },
   { name: "Upload Data", href: "/dashboard/upload", icon: Upload },
-  { name: "Reports", href: "/dashboard/reports", icon: FileText },
-  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
 ]
 
 const secondaryNavigation = [

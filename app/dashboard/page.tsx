@@ -1,7 +1,7 @@
 "use client"
 
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { BarChart3, Calculator, FileText, TrendingUp } from "lucide-react"
+import { Calculator, CreditCard, TrendingUp, Upload } from "lucide-react"
 import Link from "next/link"
 
 const stats = [
@@ -24,14 +24,14 @@ const stats = [
     value: "$1.2M",
     change: "-2.1%",
     changeType: "negative",
-    icon: BarChart3,
+    icon: Calculator,
   },
   {
-    name: "Reports Generated",
-    value: "47",
-    change: "+8.3%",
+    name: "Prepaid Balance",
+    value: "$87K",
+    change: "+3.1%",
     changeType: "positive",
-    icon: FileText,
+    icon: CreditCard,
   },
 ]
 
@@ -44,24 +44,24 @@ const quickActions = [
     color: "bg-blue-500",
   },
   {
-    name: "Upload Data",
-    description: "Import new asset data from CSV or Excel",
-    href: "/dashboard/upload",
-    icon: FileText,
-    color: "bg-green-500",
-  },
-  {
-    name: "View Reports",
-    description: "Generate depreciation and financial reports",
-    href: "/dashboard/reports",
-    icon: BarChart3,
+    name: "Depreciation History",
+    description: "Track asset depreciation over time",
+    href: "/dashboard/depreciation-history",
+    icon: TrendingUp,
     color: "bg-purple-500",
   },
   {
-    name: "Analytics",
-    description: "Deep dive into asset performance metrics",
-    href: "/dashboard/analytics",
-    icon: TrendingUp,
+    name: "Manage Prepaids",
+    description: "Track prepaid expenses and amortization",
+    href: "/dashboard/prepaids",
+    icon: CreditCard,
+    color: "bg-green-500",
+  },
+  {
+    name: "Upload Data",
+    description: "Import new asset data from CSV or Excel",
+    href: "/dashboard/upload",
+    icon: Upload,
     color: "bg-orange-500",
   },
 ]
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                 <li className="relative pb-8">
                   <div className="relative flex space-x-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-                      <FileText className="h-4 w-4 text-white" />
+                      <Upload className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex min-w-0 flex-1 justify-between space-x-4">
                       <div>
@@ -182,12 +182,12 @@ export default function DashboardPage() {
                 <li className="relative pb-8">
                   <div className="relative flex space-x-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500">
-                      <BarChart3 className="h-4 w-4 text-white" />
+                      <CreditCard className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex min-w-0 flex-1 justify-between space-x-4">
                       <div>
                         <p className="text-sm text-gray-500">
-                          Monthly depreciation report generated
+                          New prepaid expense added
                         </p>
                       </div>
                       <div className="whitespace-nowrap text-right text-sm text-gray-500">
