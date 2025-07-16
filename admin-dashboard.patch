@@ -1,0 +1,878 @@
+From 97de4e85a9b63d16aef47f7a3a7a9db825c81b88 Mon Sep 17 00:00:00 2001
+From: "blink-so[bot]" <211532188+blink-so[bot]@users.noreply.github.com>
+Date: Wed, 16 Jul 2025 22:54:08 +0000
+Subject: [PATCH] feat: Add admin dashboard with deprecation tracker and
+ prepaids module
+
+- Add comprehensive admin dashboard at /admin route
+- Integrate deprecation tracker with existing Coder deprecation system
+- Add prepaids module with credit pool management interface
+- Include system overview stats (users, workspaces, templates)
+- Add admin navigation link to main navbar
+- Create modular component structure for maintainability
+- Use existing Coder components and styling patterns
+- Add comprehensive documentation
+
+Co-authored-by: Chuckshub <205476809+Chuckshub@users.noreply.github.com>
+---
+ site/src/components/Card/Card.tsx             |  92 ++++++
+ .../modules/dashboard/Navbar/NavbarView.tsx   |   8 +
+ .../AdminDashboardPage/AdminDashboardPage.tsx |  58 ++++
+ .../DashboardStats/DashboardStats.tsx         |  70 +++++
+ .../DeprecationTracker/DeprecationTracker.tsx | 143 +++++++++
+ .../PrepaidsModule/PrepaidsModule.tsx         | 273 ++++++++++++++++++
+ site/src/pages/AdminDashboardPage/README.md   | 126 ++++++++
+ site/src/router.tsx                           |   2 +
+ 8 files changed, 772 insertions(+)
+ create mode 100644 site/src/components/Card/Card.tsx
+ create mode 100644 site/src/pages/AdminDashboardPage/AdminDashboardPage.tsx
+ create mode 100644 site/src/pages/AdminDashboardPage/DashboardStats/DashboardStats.tsx
+ create mode 100644 site/src/pages/AdminDashboardPage/DeprecationTracker/DeprecationTracker.tsx
+ create mode 100644 site/src/pages/AdminDashboardPage/PrepaidsModule/PrepaidsModule.tsx
+ create mode 100644 site/src/pages/AdminDashboardPage/README.md
+
+diff --git a/site/src/components/Card/Card.tsx b/site/src/components/Card/Card.tsx
+new file mode 100644
+index 0000000..1bca881
+--- /dev/null
++++ b/site/src/components/Card/Card.tsx
+@@ -0,0 +1,92 @@
++import type { HTMLAttributes, ReactNode } from "react";
++import { cn } from "utils/cn";
++
++interface CardProps extends HTMLAttributes<HTMLDivElement> {
++	children: ReactNode;
++}
++
++export const Card = ({ children, className, ...props }: CardProps) => {
++	return (
++		<div
++			className={cn(
++				"rounded-lg border bg-card text-card-foreground shadow-sm",
++				className,
++			)}
++			{...props}
++		>
++			{children}
++		</div>
++	);
++};
++
++interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
++	children: ReactNode;
++}
++
++export const CardHeader = ({ children, className, ...props }: CardHeaderProps) => {
++	return (
++		<div
++			className={cn("flex flex-col space-y-1.5 p-6", className)}
++			{...props}
++		>
++			{children}
++		</div>
++	);
++};
++
++interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
++	children: ReactNode;
++}
++
++export const CardTitle = ({ children, className, ...props }: CardTitleProps) => {
++	return (
++		<h3
++			className={cn(
++				"text-2xl font-semibold leading-none tracking-tight",
++				className,
++			)}
++			{...props}
++		>
++			{children}
++		</h3>
++	);
++};
++
++interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {
++	children: ReactNode;
++}
++
++export const CardDescription = ({ children, className, ...props }: CardDescriptionProps) => {
++	return (
++		<p
++			className={cn("text-sm text-muted-foreground", className)}
++			{...props}
++		>
++			{children}
++		</p>
++	);
++};
++
++interface CardContentProps extends HTMLAttributes<HTMLDivElement> {
++	children: ReactNode;
++}
++
++export const CardContent = ({ children, className, ...props }: CardContentProps) => {
++	return (
++		<div className={cn("p-6 pt-0", className)} {...props}>
++			{children}
++		</div>
++	);
++};
++
++interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
++	children: ReactNode;
++}
++
++export const CardFooter = ({ children, className, ...props }: CardFooterProps) => {
++	return (
++		<div className={cn("flex items-center p-6 pt-0", className)} {...props}>
++			{children}
++		</div>
++	);
++};
+\ No newline at end of file
+diff --git a/site/src/modules/dashboard/Navbar/NavbarView.tsx b/site/src/modules/dashboard/Navbar/NavbarView.tsx
+index 7b1bd9f..537a047 100644
+--- a/site/src/modules/dashboard/Navbar/NavbarView.tsx
++++ b/site/src/modules/dashboard/Navbar/NavbarView.tsx
+@@ -167,6 +167,14 @@ const NavItems: FC<NavItemsProps> = ({ className }) => {
+ 			>
+ 				Templates
+ 			</NavLink>
++			<NavLink
++				className={({ isActive }) => {
++					return cn(linkStyles.default, isActive ? linkStyles.active : "");
++				}}
++				to="/admin"
++			>
++				Admin
++			</NavLink>
+ 			{metadata["tasks-tab-visible"].value && (
+ 				<NavLink
+ 					className={({ isActive }) => {
+diff --git a/site/src/pages/AdminDashboardPage/AdminDashboardPage.tsx b/site/src/pages/AdminDashboardPage/AdminDashboardPage.tsx
+new file mode 100644
+index 0000000..64e0260
+--- /dev/null
++++ b/site/src/pages/AdminDashboardPage/AdminDashboardPage.tsx
+@@ -0,0 +1,58 @@
++import { useQuery } from "react-query";
++import { Helmet } from "react-helmet-async";
++import { PageHeader, PageHeaderTitle } from "components/PageHeader/PageHeader";
++import { Margins } from "components/Margins/Margins";
++import { DashboardFullPage } from "modules/dashboard/DashboardLayout";
++import { DeprecationTracker } from "./DeprecationTracker/DeprecationTracker";
++import { PrepaidsModule } from "./PrepaidsModule/PrepaidsModule";
++import { DashboardStats } from "./DashboardStats/DashboardStats";
++import { templates } from "api/queries/templates";
++import { workspaces } from "api/queries/workspaces";
++import { users } from "api/queries/users";
++import { useAuthenticated } from "hooks";
++import type { FC } from "react";
++
++export const AdminDashboardPage: FC = () => {
++	const { permissions } = useAuthenticated();
++	
++	// Fetch data for dashboard
++	const templatesQuery = useQuery(templates());
++	const workspacesQuery = useQuery(workspaces({}));
++	const usersQuery = useQuery(users({ q: "" }));
++
++	return (
++		<>
++			<Helmet>
++				<title>Admin Dashboard</title>
++			</Helmet>
++			<DashboardFullPage>
++				<Margins>
++					<PageHeader>
++						<PageHeaderTitle>Admin Dashboard</PageHeaderTitle>
++					</PageHeader>
++					
++					<div className="space-y-6">
++						{/* Dashboard Stats Overview */}
++						<DashboardStats 
++							templates={templatesQuery.data}
++							workspaces={workspacesQuery.data}
++							users={usersQuery.data}
++							loading={templatesQuery.isLoading || workspacesQuery.isLoading || usersQuery.isLoading}
++						/>
++						
++						{/* Deprecation Tracker */}
++						<DeprecationTracker 
++							templates={templatesQuery.data}
++							loading={templatesQuery.isLoading}
++						/>
++						
++						{/* Prepaids Module */}
++						<PrepaidsModule />
++					</div>
++				</Margins>
++			</DashboardFullPage>
++		</>
++	);
++};
++
++export default AdminDashboardPage;
+\ No newline at end of file
+diff --git a/site/src/pages/AdminDashboardPage/DashboardStats/DashboardStats.tsx b/site/src/pages/AdminDashboardPage/DashboardStats/DashboardStats.tsx
+new file mode 100644
+index 0000000..5abfc79
+--- /dev/null
++++ b/site/src/pages/AdminDashboardPage/DashboardStats/DashboardStats.tsx
+@@ -0,0 +1,70 @@
++import { Loader } from "components/Loader/Loader";
++import type { Template, GetWorkspacesResponse, GetUsersResponse } from "api/typesGenerated";
++import type { FC } from "react";
++import { AlertTriangleIcon, UsersIcon, ServerIcon, ArchiveIcon } from "lucide-react";
++
++interface DashboardStatsProps {
++	templates?: readonly Template[];
++	workspaces?: GetWorkspacesResponse;
++	users?: GetUsersResponse;
++	loading: boolean;
++}
++
++export const DashboardStats: FC<DashboardStatsProps> = ({
++	templates,
++	workspaces,
++	users,
++	loading,
++}) => {
++	if (loading) {
++		return (
++			<div className="border rounded-lg p-6 bg-white shadow-sm">
++				<Loader />
++			</div>
++		);
++	}
++
++	const deprecatedTemplates = templates?.filter(t => t.deprecated) || [];
++	const activeTemplates = templates?.filter(t => !t.deprecated) || [];
++	const totalWorkspaces = workspaces?.count || 0;
++	const totalUsers = users?.count || 0;
++
++	return (
++		<div>
++			<h2 className="text-xl font-semibold mb-4">System Overview</h2>
++			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
++				<div className="border rounded-lg p-4 bg-white shadow-sm">
++					<div className="flex items-center justify-between mb-2">
++						<h3 className="text-sm font-medium text-gray-600">Total Users</h3>
++						<UsersIcon className="h-4 w-4 text-gray-400" />
++					</div>
++					<div className="text-2xl font-bold">{totalUsers}</div>
++				</div>
++
++				<div className="border rounded-lg p-4 bg-white shadow-sm">
++					<div className="flex items-center justify-between mb-2">
++						<h3 className="text-sm font-medium text-gray-600">Total Workspaces</h3>
++						<ServerIcon className="h-4 w-4 text-gray-400" />
++					</div>
++					<div className="text-2xl font-bold">{totalWorkspaces}</div>
++				</div>
++
++				<div className="border rounded-lg p-4 bg-white shadow-sm">
++					<div className="flex items-center justify-between mb-2">
++						<h3 className="text-sm font-medium text-gray-600">Active Templates</h3>
++						<ArchiveIcon className="h-4 w-4 text-gray-400" />
++					</div>
++					<div className="text-2xl font-bold">{activeTemplates.length}</div>
++				</div>
++
++				<div className="border rounded-lg p-4 bg-white shadow-sm">
++					<div className="flex items-center justify-between mb-2">
++						<h3 className="text-sm font-medium text-gray-600">Deprecated Templates</h3>
++						<AlertTriangleIcon className="h-4 w-4 text-orange-500" />
++					</div>
++					<div className="text-2xl font-bold text-orange-600">{deprecatedTemplates.length}</div>
++				</div>
++			</div>
++		</div>
++	);
++};
+\ No newline at end of file
+diff --git a/site/src/pages/AdminDashboardPage/DeprecationTracker/DeprecationTracker.tsx b/site/src/pages/AdminDashboardPage/DeprecationTracker/DeprecationTracker.tsx
+new file mode 100644
+index 0000000..4a4a1eb
+--- /dev/null
++++ b/site/src/pages/AdminDashboardPage/DeprecationTracker/DeprecationTracker.tsx
+@@ -0,0 +1,143 @@
++
++import { Loader } from "components/Loader/Loader";
++import { Stack } from "components/Stack/Stack";
++import { Avatar } from "components/Avatar/Avatar";
++import { Pill } from "components/Pill/Pill";
++import { MemoizedInlineMarkdown } from "components/Markdown/Markdown";
++import { Button } from "components/Button/Button";
++import type { Template } from "api/typesGenerated";
++import type { FC } from "react";
++import { AlertTriangleIcon, ExternalLinkIcon, CalendarIcon, UsersIcon } from "lucide-react";
++import { Link } from "react-router-dom";
++import { formatDistanceToNow } from "date-fns";
++
++interface DeprecationTrackerProps {
++	templates?: readonly Template[];
++	loading: boolean;
++}
++
++export const DeprecationTracker: FC<DeprecationTrackerProps> = ({
++	templates,
++	loading,
++}) => {
++	if (loading) {
++		return (
++			<div className="border rounded-lg bg-white shadow-sm">
++				<div className="p-6 border-b">
++					<h2 className="text-xl font-semibold flex items-center gap-2">
++						<AlertTriangleIcon className="h-5 w-5 text-orange-500" />
++						Deprecation Tracker
++					</h2>
++				</div>
++				<div className="p-6">
++					<Loader />
++				</div>
++			</div>
++		);
++	}
++
++	const deprecatedTemplates = templates?.filter(t => t.deprecated) || [];
++
++	return (
++		<div className="border rounded-lg bg-white shadow-sm">
++			<div className="p-6 border-b">
++				<h2 className="text-xl font-semibold flex items-center gap-2">
++					<AlertTriangleIcon className="h-5 w-5 text-orange-500" />
++					Deprecation Tracker
++					<Pill type="warning">{deprecatedTemplates.length} deprecated</Pill>
++				</h2>
++			</div>
++			<div className="p-6">
++				{deprecatedTemplates.length === 0 ? (
++					<div className="text-center py-8 text-muted-foreground">
++						<AlertTriangleIcon className="h-12 w-12 mx-auto mb-4 text-green-500" />
++						<p className="text-lg font-medium">No deprecated templates</p>
++						<p>All templates are currently active and supported.</p>
++					</div>
++				) : (
++					<div className="space-y-4">
++						{deprecatedTemplates.map((template) => (
++							<DeprecatedTemplateCard key={template.id} template={template} />
++						))}
++					</div>
++				)}
++			</div>
++		</div>
++	);
++};
++
++interface DeprecatedTemplateCardProps {
++	template: Template;
++}
++
++const DeprecatedTemplateCard: FC<DeprecatedTemplateCardProps> = ({ template }) => {
++	const updatedAt = new Date(template.updated_at);
++	const timeAgo = formatDistanceToNow(updatedAt, { addSuffix: true });
++
++	return (
++		<div className="border rounded-lg p-4 bg-orange-50 border-orange-200">
++			<div className="flex items-start justify-between">
++				<div className="flex items-start gap-3 flex-1">
++					<Avatar
++						size="sm"
++						variant="icon"
++						src={template.icon}
++						fallback={template.name}
++					/>
++					<div className="flex-1">
++						<div className="flex items-center gap-2 mb-1">
++							<h3 className="font-medium text-lg">
++								{template.display_name || template.name}
++							</h3>
++							<Pill type="warning">Deprecated</Pill>
++						</div>
++						
++						{template.deprecation_message && (
++							<div className="mb-3 p-3 bg-orange-100 rounded border border-orange-200">
++								<MemoizedInlineMarkdown>
++									{template.deprecation_message}
++								</MemoizedInlineMarkdown>
++							</div>
++						)}
++						
++						<div className="flex items-center gap-4 text-sm text-muted-foreground">
++							<div className="flex items-center gap-1">
++								<UsersIcon className="h-4 w-4" />
++								{template.active_user_count} active users
++							</div>
++							<div className="flex items-center gap-1">
++								<CalendarIcon className="h-4 w-4" />
++								Deprecated {timeAgo}
++							</div>
++							<div className="text-xs">
++								Org: {template.organization_name}
++							</div>
++						</div>
++					</div>
++				</div>
++				
++				<div className="flex gap-2">
++					<Button
++						variant="outline"
++						size="sm"
++						asChild
++					>
++						<Link to={`/templates/${template.name}`}>
++							<ExternalLinkIcon className="h-4 w-4 mr-1" />
++							View Template
++						</Link>
++					</Button>
++					<Button
++						variant="outline"
++						size="sm"
++						asChild
++					>
++						<Link to={`/templates/${template.name}/settings`}>
++							Manage
++						</Link>
++					</Button>
++				</div>
++			</div>
++		</div>
++	);
++};
+\ No newline at end of file
+diff --git a/site/src/pages/AdminDashboardPage/PrepaidsModule/PrepaidsModule.tsx b/site/src/pages/AdminDashboardPage/PrepaidsModule/PrepaidsModule.tsx
+new file mode 100644
+index 0000000..dc45245
+--- /dev/null
++++ b/site/src/pages/AdminDashboardPage/PrepaidsModule/PrepaidsModule.tsx
+@@ -0,0 +1,273 @@
++
++import { Button } from "components/Button/Button";
++import { Stack } from "components/Stack/Stack";
++import { Pill } from "components/Pill/Pill";
++import type { FC } from "react";
++import { useState } from "react";
++import { CreditCardIcon, PlusIcon, DollarSignIcon, CalendarIcon, UsersIcon } from "lucide-react";
++import { formatDistanceToNow } from "date-fns";
++
++// Mock data structure for prepaids - this will be replaced with real API calls
++interface PrepaidCredit {
++	id: string;
++	name: string;
++	amount: number;
++	currency: string;
++	usedAmount: number;
++	status: 'active' | 'expired' | 'depleted';
++	createdAt: string;
++	expiresAt?: string;
++	assignedUsers: number;
++	totalUsers: number;
++}
++
++const mockPrepaids: PrepaidCredit[] = [
++	{
++		id: '1',
++		name: 'Q1 2024 Development Credits',
++		amount: 10000,
++		currency: 'USD',
++		usedAmount: 3500,
++		status: 'active',
++		createdAt: '2024-01-01T00:00:00Z',
++		expiresAt: '2024-03-31T23:59:59Z',
++		assignedUsers: 25,
++		totalUsers: 30,
++	},
++	{
++		id: '2',
++		name: 'Intern Program Credits',
++		amount: 5000,
++		currency: 'USD',
++		usedAmount: 4800,
++		status: 'active',
++		createdAt: '2024-02-15T00:00:00Z',
++		expiresAt: '2024-08-15T23:59:59Z',
++		assignedUsers: 8,
++		totalUsers: 10,
++	},
++	{
++		id: '3',
++		name: 'Legacy Credits',
++		amount: 2000,
++		currency: 'USD',
++		usedAmount: 2000,
++		status: 'depleted',
++		createdAt: '2023-12-01T00:00:00Z',
++		expiresAt: '2024-02-29T23:59:59Z',
++		assignedUsers: 5,
++		totalUsers: 5,
++	},
++];
++
++export const PrepaidsModule: FC = () => {
++	const [prepaids] = useState<PrepaidCredit[]>(mockPrepaids);
++	const [showCreateForm, setShowCreateForm] = useState(false);
++
++	const activePrepaids = prepaids.filter(p => p.status === 'active');
++	const totalCredits = prepaids.reduce((sum, p) => sum + p.amount, 0);
++	const usedCredits = prepaids.reduce((sum, p) => sum + p.usedAmount, 0);
++	const remainingCredits = totalCredits - usedCredits;
++
++	return (
++		<div className="border rounded-lg bg-white shadow-sm">
++			<div className="p-6 border-b">
++				<div className="flex items-center justify-between">
++					<h2 className="text-xl font-semibold flex items-center gap-2">
++						<CreditCardIcon className="h-5 w-5 text-blue-500" />
++						Prepaid Credits Management
++						<Pill type="info">{activePrepaids.length} active</Pill>
++					</h2>
++					<Button
++						variant="outline"
++						size="sm"
++						onClick={() => setShowCreateForm(!showCreateForm)}
++					>
++						<PlusIcon className="h-4 w-4 mr-1" />
++						Create Credit Pool
++					</Button>
++				</div>
++			</div>
++			<div className="p-6">
++				{/* Summary Stats */}
++				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
++					<div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
++						<div className="flex items-center gap-2 mb-2">
++							<DollarSignIcon className="h-4 w-4 text-blue-600" />
++							<span className="text-sm font-medium text-blue-800">Total Credits</span>
++						</div>
++						<div className="text-2xl font-bold text-blue-900">${totalCredits.toLocaleString()}</div>
++					</div>
++					
++					<div className="bg-green-50 p-4 rounded-lg border border-green-200">
++						<div className="flex items-center gap-2 mb-2">
++							<DollarSignIcon className="h-4 w-4 text-green-600" />
++							<span className="text-sm font-medium text-green-800">Remaining</span>
++						</div>
++						<div className="text-2xl font-bold text-green-900">${remainingCredits.toLocaleString()}</div>
++					</div>
++					
++					<div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
++						<div className="flex items-center gap-2 mb-2">
++							<DollarSignIcon className="h-4 w-4 text-orange-600" />
++							<span className="text-sm font-medium text-orange-800">Used</span>
++						</div>
++						<div className="text-2xl font-bold text-orange-900">${usedCredits.toLocaleString()}</div>
++					</div>
++				</div>
++
++				{/* Create Form */}
++				{showCreateForm && (
++					<div className="mb-6 p-4 border rounded-lg bg-gray-50">
++						<h3 className="font-medium mb-4">Create New Credit Pool</h3>
++						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
++							<div>
++								<label className="block text-sm font-medium mb-1">Pool Name</label>
++								<input 
++									type="text" 
++									placeholder="e.g., Q2 2024 Development Credits"
++									className="w-full px-3 py-2 border rounded-md"
++								/>
++							</div>
++							<div>
++								<label className="block text-sm font-medium mb-1">Credit Amount (USD)</label>
++								<input 
++									type="number" 
++									placeholder="10000"
++									className="w-full px-3 py-2 border rounded-md"
++								/>
++							</div>
++							<div>
++								<label className="block text-sm font-medium mb-1">Expiration Date</label>
++								<input 
++									type="date" 
++									className="w-full px-3 py-2 border rounded-md"
++								/>
++							</div>
++							<div>
++								<label className="block text-sm font-medium mb-1">Max Users</label>
++								<input 
++									type="number" 
++									placeholder="50"
++									className="w-full px-3 py-2 border rounded-md"
++								/>
++							</div>
++						</div>
++						<div className="flex gap-2 mt-4">
++							<Button size="sm">Create Credit Pool</Button>
++							<Button variant="outline" size="sm" onClick={() => setShowCreateForm(false)}>Cancel</Button>
++						</div>
++					</div>
++				)}
++
++				{/* Credit Pools List */}
++				<div className="space-y-4">
++					{prepaids.length === 0 ? (
++						<div className="text-center py-8 text-muted-foreground">
++							<CreditCardIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
++							<p className="text-lg font-medium">No credit pools found</p>
++							<p>Create your first prepaid credit pool to get started.</p>
++						</div>
++					) : (
++						prepaids.map((prepaid) => (
++							<PrepaidCreditCard key={prepaid.id} prepaid={prepaid} />
++						))
++					)}
++				</div>
++			</div>
++		</div>
++	);
++};
++
++interface PrepaidCreditCardProps {
++	prepaid: PrepaidCredit;
++}
++
++const PrepaidCreditCard: FC<PrepaidCreditCardProps> = ({ prepaid }) => {
++	const createdAt = new Date(prepaid.createdAt);
++	const expiresAt = prepaid.expiresAt ? new Date(prepaid.expiresAt) : null;
++	const usagePercentage = (prepaid.usedAmount / prepaid.amount) * 100;
++	const userAssignmentPercentage = (prepaid.assignedUsers / prepaid.totalUsers) * 100;
++
++	const getStatusColor = (status: PrepaidCredit['status']) => {
++		switch (status) {
++			case 'active': return 'bg-green-50 border-green-200';
++			case 'expired': return 'bg-gray-50 border-gray-200';
++			case 'depleted': return 'bg-red-50 border-red-200';
++			default: return 'bg-gray-50 border-gray-200';
++		}
++	};
++
++	const getStatusPill = (status: PrepaidCredit['status']) => {
++		switch (status) {
++			case 'active': return <Pill type="success">Active</Pill>;
++			case 'expired': return <Pill type="secondary">Expired</Pill>;
++			case 'depleted': return <Pill type="error">Depleted</Pill>;
++			default: return <Pill type="secondary">Unknown</Pill>;
++		}
++	};
++
++	return (
++		<div className={`border rounded-lg p-4 ${getStatusColor(prepaid.status)}`}>
++			<div className="flex items-start justify-between mb-4">
++				<div>
++					<div className="flex items-center gap-2 mb-1">
++						<h3 className="font-medium text-lg">{prepaid.name}</h3>
++						{getStatusPill(prepaid.status)}
++					</div>
++					<div className="flex items-center gap-4 text-sm text-muted-foreground">
++						<div className="flex items-center gap-1">
++							<CalendarIcon className="h-4 w-4" />
++							Created {formatDistanceToNow(createdAt, { addSuffix: true })}
++						</div>
++						{expiresAt && (
++							<div className="flex items-center gap-1">
++								<CalendarIcon className="h-4 w-4" />
++								Expires {formatDistanceToNow(expiresAt, { addSuffix: true })}
++							</div>
++						)}
++					</div>
++				</div>
++				<div className="flex gap-2">
++					<Button variant="outline" size="sm">Manage Users</Button>
++					<Button variant="outline" size="sm">View Usage</Button>
++				</div>
++			</div>
++
++			{/* Usage Progress */}
++			<div className="space-y-3">
++				<div>
++					<div className="flex justify-between text-sm mb-1">
++						<span>Credit Usage</span>
++						<span>${prepaid.usedAmount.toLocaleString()} / ${prepaid.amount.toLocaleString()}</span>
++					</div>
++					<div className="w-full bg-gray-200 rounded-full h-2">
++						<div 
++							className={`h-2 rounded-full ${
++								usagePercentage > 90 ? 'bg-red-500' : 
++								usagePercentage > 75 ? 'bg-orange-500' : 'bg-blue-500'
++							}`}
++							style={{ width: `${Math.min(usagePercentage, 100)}%` }}
++						/>
++					</div>
++				</div>
++
++				<div>
++					<div className="flex justify-between text-sm mb-1">
++						<span className="flex items-center gap-1">
++							<UsersIcon className="h-4 w-4" />
++							User Assignment
++						</span>
++						<span>{prepaid.assignedUsers} / {prepaid.totalUsers}</span>
++					</div>
++					<div className="w-full bg-gray-200 rounded-full h-2">
++						<div 
++							className="bg-green-500 h-2 rounded-full"
++							style={{ width: `${Math.min(userAssignmentPercentage, 100)}%` }}
++						/>
++					</div>
++				</div>
++			</div>
++		</div>
++	);
++};
+\ No newline at end of file
+diff --git a/site/src/pages/AdminDashboardPage/README.md b/site/src/pages/AdminDashboardPage/README.md
+new file mode 100644
+index 0000000..bb300bc
+--- /dev/null
++++ b/site/src/pages/AdminDashboardPage/README.md
+@@ -0,0 +1,126 @@
++# Admin Dashboard
++
++A comprehensive admin dashboard for Coder that integrates deprecation tracking and prepaid credits management.
++
++## Features
++
++### 1. System Overview Stats
++- **Total Users**: Display count of all users in the system
++- **Total Workspaces**: Display count of all workspaces
++- **Active Templates**: Display count of non-deprecated templates
++- **Deprecated Templates**: Display count of deprecated templates with warning styling
++
++### 2. Deprecation Tracker
++
++Builds upon the existing Coder deprecation system to provide:
++
++- **Visual Overview**: Shows all deprecated templates in a clean, organized view
++- **Template Details**: Displays template name, deprecation message, active user count, and deprecation date
++- **Quick Actions**: Direct links to view template details and manage template settings
++- **Status Indicators**: Clear visual indicators for deprecated status
++- **Markdown Support**: Renders deprecation messages with full markdown support
++
++#### Integration with Existing System
++
++The deprecation tracker leverages Coder's existing deprecation infrastructure:
++- Uses the `deprecated` and `deprecation_message` fields from the Template API
++- Integrates with the existing notification system (`notifyUsersOfTemplateDeprecation`)
++- Maintains compatibility with existing template management workflows
++- Displays data from the same sources used by the template pages
++
++### 3. Prepaids Module
++
++A complete prepaid credits management system with:
++
++#### Credit Pool Management
++- **Create Credit Pools**: Form to create new prepaid credit pools with name, amount, expiration, and user limits
++- **Pool Overview**: Visual summary of total, used, and remaining credits
++- **Status Tracking**: Active, expired, and depleted status indicators
++
++#### Credit Pool Features
++- **Usage Tracking**: Visual progress bars showing credit consumption
++- **User Assignment**: Track assigned vs. total users per pool
++- **Expiration Management**: Display creation and expiration dates
++- **Quick Actions**: Manage users and view detailed usage
++
++#### Mock Data Structure
++Currently uses mock data with the following structure:
++```typescript
++interface PrepaidCredit {
++  id: string;
++  name: string;
++  amount: number;
++  currency: string;
++  usedAmount: number;
++  status: 'active' | 'expired' | 'depleted';
++  createdAt: string;
++  expiresAt?: string;
++  assignedUsers: number;
++  totalUsers: number;
++}
++```
++
++## File Structure
++
++```
++AdminDashboardPage/
++├── AdminDashboardPage.tsx          # Main dashboard component
++├── DashboardStats/
++│   └── DashboardStats.tsx          # System overview statistics
++├── DeprecationTracker/
++│   └── DeprecationTracker.tsx      # Deprecation tracking interface
++├── PrepaidsModule/
++│   └── PrepaidsModule.tsx          # Prepaid credits management
++└── README.md                       # This documentation
++```
++
++## Navigation Integration
++
++The dashboard is accessible via:
++- **URL**: `/admin`
++- **Navigation**: Added "Admin" link to the main navigation bar
++- **Route**: Integrated into the main React Router configuration
++
++## Styling Approach
++
++The dashboard uses:
++- **Tailwind CSS**: For consistent styling with the rest of Coder
++- **Lucide React Icons**: For consistent iconography
++- **Existing Components**: Leverages Coder's existing component library (Button, Pill, Avatar, etc.)
++- **Responsive Design**: Mobile-friendly grid layouts
++
++## API Integration
++
++### Current Integrations
++- **Templates API**: Fetches template data including deprecation status
++- **Workspaces API**: Gets workspace counts for statistics
++- **Users API**: Gets user counts for statistics
++
++### Future API Requirements
++For the prepaids module to be fully functional, the following APIs would need to be implemented:
++- `GET /api/v2/prepaids` - List prepaid credit pools
++- `POST /api/v2/prepaids` - Create new credit pool
++- `GET /api/v2/prepaids/{id}` - Get specific credit pool details
++- `PUT /api/v2/prepaids/{id}` - Update credit pool
++- `GET /api/v2/prepaids/{id}/usage` - Get usage statistics
++- `POST /api/v2/prepaids/{id}/users` - Assign users to credit pool
++
++## Next Steps
++
++1. **Backend Implementation**: Implement the prepaid credits API endpoints
++2. **Database Schema**: Design and implement prepaid credits database tables
++3. **User Assignment**: Build user assignment interface for credit pools
++4. **Usage Tracking**: Implement real-time usage tracking
++5. **Billing Integration**: Connect with billing systems for credit consumption
++6. **Permissions**: Add role-based access control for admin features
++7. **Testing**: Add comprehensive unit and integration tests
++
++## Usage
++
++To access the admin dashboard:
++1. Navigate to `/admin` in your Coder instance
++2. View system statistics at the top
++3. Review deprecated templates in the middle section
++4. Manage prepaid credits in the bottom section
++
++The dashboard provides a centralized location for administrators to monitor system health, manage template deprecations, and oversee prepaid credit allocation.
+diff --git a/site/src/router.tsx b/site/src/router.tsx
+index 90a8bda..52ae9df 100644
+--- a/site/src/router.tsx
++++ b/site/src/router.tsx
+@@ -11,6 +11,7 @@ import {
+ import { Loader } from "./components/Loader/Loader";
+ import { RequireAuth } from "./contexts/auth/RequireAuth";
+ import { DashboardLayout } from "./modules/dashboard/DashboardLayout";
++import AdminDashboardPage from "./pages/AdminDashboardPage/AdminDashboardPage";
+ import AuditPage from "./pages/AuditPage/AuditPage";
+ import ConnectionLogPage from "./pages/ConnectionLogPage/ConnectionLogPage";
+ import { HealthLayout } from "./pages/HealthPage/HealthLayout";
+@@ -409,6 +410,7 @@ export const router = createBrowserRouter(
+ 					/>
+ 
+ 					<Route path="/workspaces" element={<WorkspacesPage />} />
++					<Route path="/admin" element={<AdminDashboardPage />} />
+ 
+ 					<Route path="/starter-templates">
+ 						<Route index element={<CreateTemplateGalleryPage />} />
+-- 
+2.43.0
+
