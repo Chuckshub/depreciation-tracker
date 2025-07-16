@@ -205,7 +205,7 @@ async function handleStats(): Promise<NextResponse> {
   const collectionRef = collection(db, 'assets');
   const snapshot = await getDocs(collectionRef);
   
-  const assets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const assets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Array<Asset & { id: string }>;
   
   // Calculate some basic statistics
   const totalCost = assets.reduce((sum, asset) => sum + (asset.cost || 0), 0);
