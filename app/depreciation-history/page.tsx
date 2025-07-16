@@ -5,6 +5,61 @@ import { useRouter } from 'next/navigation';
 import { Asset } from '@/types/asset';
 import { formatCurrency, get2025MonthKeys, getMonthName } from '@/utils/formatters';
 
+interface EditableGLCellProps {
+  value: number;
+  monthKey: string;
+  isEditing: boolean;
+  onEdit: (monthKey: string) => void;
+  onSave: (monthKey: string, value: string) => void;
+  onCancel: () => void;
+}
+
+function EditableGLCell({ value, monthKey, isEditing, onEdit, onSave, onCancel }: EditableGLCellProps) {
+  const [editValue, setEditValue] = useState('');
+
+  const handleEdit = () => {
+    setEditValue(value.toString());
+    onEdit(monthKey);
+  };
+
+  const handleSave = () => {
+    onSave(monthKey, editValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      onCancel();
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <input
+        type="number"
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleSave}
+        autoFocus
+        className="w-full px-2 py-1 text-sm border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-right font-mono"
+        step="0.01"
+      />
+    );
+  }
+
+  return (
+    <div 
+      onClick={handleEdit}
+      className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded transition-colors text-right font-mono"
+      title="Click to edit GL balance"
+    >
+      {formatCurrency(value)}
+    </div>
+  );
+}
+
 type SortField = 'asset' | 'account' | 'department' | 'dateInPlace' | 'total' | string; // string for month keys
 type SortDirection = 'asc' | 'desc';
 
@@ -18,36 +73,51 @@ export default function DepreciationHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'asset', direction: 'asc' });
+  const [glBalances, setGlBalances] = useState<Record<string, number>>({});
+  const [editingGlCell, setEditingGlCell] = useState<string | null>(null);
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
   const router = useRouter();
 
   const monthKeys = get2025MonthKeys();
 
   useEffect(() => {
-    const fetchAssets = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('/api/assets');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch assets: ${response.status} ${response.statusText}`);
+        // Fetch assets and GL balances in parallel
+        const [assetsResponse, glBalancesResponse] = await Promise.all([
+          fetch('/api/assets'),
+          fetch('/api/gl-balances')
+        ]);
+        
+        if (!assetsResponse.ok) {
+          throw new Error(`Failed to fetch assets: ${assetsResponse.status} ${assetsResponse.statusText}`);
         }
         
-        const data = await response.json();
-        
-        // Handle both array format and object with assets property
-        const assetArray = Array.isArray(data) ? data : data.assets || [];
+        const assetsData = await assetsResponse.json();
+        const assetArray = Array.isArray(assetsData) ? assetsData : assetsData.assets || [];
         setAssets(assetArray);
+        
+        // Load GL balances if available
+        if (glBalancesResponse.ok) {
+          const glData = await glBalancesResponse.json();
+          if (glData.success && glData.glBalances) {
+            setGlBalances(glData.glBalances);
+          }
+        }
+        
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load asset data';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load data';
         setError(errorMessage);
-        console.error('Error fetching assets:', err);
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAssets();
+    fetchData();
   }, []);
 
   // Calculate depreciation amount for a specific month
@@ -77,6 +147,85 @@ export default function DepreciationHistoryPage() {
   const grandTotal = useMemo(() => {
     return monthlyTotals.reduce((sum, monthTotal) => sum + monthTotal, 0);
   }, [monthlyTotals]);
+
+  // Calculate variance for each month (GL Balance - Calculated Balance)
+  const monthlyVariances = useMemo(() => {
+    return monthKeys.map((monthKey, index) => {
+      const glBalance = glBalances[monthKey] || 0;
+      const calculatedBalance = monthlyTotals[index] || 0;
+      return glBalance - calculatedBalance;
+    });
+  }, [monthKeys, glBalances, monthlyTotals]);
+
+  // Handle GL balance editing
+  const handleGlBalanceEdit = (monthKey: string) => {
+    setEditingGlCell(monthKey);
+  };
+
+  const handleGlBalanceSave = (monthKey: string, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    setGlBalances(prev => ({ ...prev, [monthKey]: numValue }));
+    setEditingGlCell(null);
+  };
+
+  const handleGlBalanceCancel = () => {
+    setEditingGlCell(null);
+  };
+
+  const handleDownloadReconciliation = async () => {
+    setDownloadingExcel(true);
+    try {
+      // Save GL balances first
+      await fetch('/api/gl-balances', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ glBalances }),
+      });
+
+      // Prepare data for Excel export
+      const exportData = {
+        assets: sortedAssets,
+        monthKeys,
+        monthlyTotals,
+        glBalances,
+        monthlyVariances,
+        grandTotal
+      };
+
+      // Generate Excel file
+      const response = await fetch('/api/export/excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(exportData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Excel file');
+      }
+
+      // Download the file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `depreciation-reconciliation-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+    } catch (error) {
+      console.error('Error downloading reconciliation:', error);
+      setError(error instanceof Error ? error.message : 'Failed to download reconciliation');
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
 
   // Sort assets based on current sort configuration
   const sortedAssets = useMemo(() => {
@@ -178,6 +327,48 @@ export default function DepreciationHistoryPage() {
             >
               Back to Reconciliation
             </button>
+            <button
+              onClick={handleDownloadReconciliation}
+              disabled={downloadingExcel}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                downloadingExcel 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-green-600 hover:bg-green-700'
+              } text-white`}
+            >
+              {downloadingExcel ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating Excel...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  📊 Download Reconciliation
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Instructions */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">
+                GL Balance & Reconciliation
+              </h3>
+              <div className="mt-2 text-sm text-blue-700">
+                <p>Click on <strong>GL Balance</strong> cells to enter actual GL amounts. <strong>Variance</strong> shows the difference (GL - Calculated). Use <strong>Download Reconciliation</strong> to save GL balances and export to Excel with journal entries.</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -282,6 +473,57 @@ export default function DepreciationHistoryPage() {
                   ))}
                   <td className="px-3 py-3 text-sm font-bold text-gray-900 text-right font-mono">
                     {formatCurrency(grandTotal)}
+                  </td>
+                </tr>
+
+                {/* GL Balance Row */}
+                <tr className="bg-green-50 border-t border-green-200">
+                  <td className="px-3 py-3 text-sm font-bold text-gray-900 border-r border-gray-200 sticky left-0 bg-green-50 z-10">
+                    GL Balance
+                  </td>
+                  <td className="px-3 py-3 border-r border-gray-200"></td>
+                  <td className="px-3 py-3 border-r border-gray-200"></td>
+                  <td className="px-3 py-3 border-r border-gray-200"></td>
+                  {monthKeys.map((monthKey) => (
+                    <td 
+                      key={`gl-${monthKey}`}
+                      className="px-2 py-3 text-sm text-gray-900 border-r border-gray-200"
+                    >
+                      <EditableGLCell
+                        value={glBalances[monthKey] || 0}
+                        monthKey={monthKey}
+                        isEditing={editingGlCell === monthKey}
+                        onEdit={handleGlBalanceEdit}
+                        onSave={handleGlBalanceSave}
+                        onCancel={handleGlBalanceCancel}
+                      />
+                    </td>
+                  ))}
+                  <td className="px-3 py-3 text-sm font-bold text-gray-900 text-right font-mono">
+                    {formatCurrency(Object.values(glBalances).reduce((sum, val) => sum + val, 0))}
+                  </td>
+                </tr>
+
+                {/* Variance Row */}
+                <tr className="bg-yellow-50 border-t border-yellow-200">
+                  <td className="px-3 py-3 text-sm font-bold text-gray-900 border-r border-gray-200 sticky left-0 bg-yellow-50 z-10">
+                    Variance
+                  </td>
+                  <td className="px-3 py-3 border-r border-gray-200"></td>
+                  <td className="px-3 py-3 border-r border-gray-200"></td>
+                  <td className="px-3 py-3 border-r border-gray-200"></td>
+                  {monthlyVariances.map((variance, index) => (
+                    <td 
+                      key={`variance-${monthKeys[index]}`}
+                      className={`px-2 py-3 text-sm font-bold border-r border-gray-200 text-right font-mono ${
+                        variance > 0 ? 'text-green-700' : variance < 0 ? 'text-red-700' : 'text-gray-900'
+                      }`}
+                    >
+                      {formatCurrency(variance)}
+                    </td>
+                  ))}
+                  <td className="px-3 py-3 text-sm font-bold text-gray-900 text-right font-mono">
+                    {formatCurrency(monthlyVariances.reduce((sum, variance) => sum + variance, 0))}
                   </td>
                 </tr>
               </tbody>
