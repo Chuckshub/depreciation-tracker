@@ -52,7 +52,9 @@ export default function DepreciationHistoryPage() {
 
   // Calculate depreciation amount for a specific month
   const getDepreciationForMonth = useCallback((asset: Asset, monthKey: string): number => {
-    return asset.depSchedule[monthKey] ?? asset.monthlyDep;
+    // Only use the value if it exists in the depreciation schedule
+    // Don't fall back to monthlyDep as that would give incorrect totals
+    return asset.depSchedule[monthKey] ?? 0;
   }, []);
 
   // Calculate total depreciation for an asset across all 2025 months

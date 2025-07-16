@@ -134,12 +134,18 @@ export class WebCSVParser {
       if (datePattern.test(header) && header !== 'Date' && header !== 'Date in place (Mid-month convention)') {
         const value = this.parseNumber(row[header]);
         if (value !== 0) {
-          // Convert MM/DD/YY to MM/DD/YYYY for consistency
+          // Convert M/D/YY to MM/DD/YYYY for consistency with app expectations
           let normalizedDate = header;
-          if (header.match(/^\d{1,2}\/\d{1,2}\/\d{2}$/)) {
+          if (header.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/)) {
             const [month, day, year] = header.split('/');
-            const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
-            normalizedDate = `${month}/${day}/${fullYear}`;
+            let fullYear = parseInt(year);
+            if (fullYear < 100) {
+              fullYear = fullYear < 50 ? 2000 + fullYear : 1900 + fullYear;
+            }
+            // Pad month and day with leading zeros to match MM/DD/YYYY format
+            const paddedMonth = month.padStart(2, '0');
+            const paddedDay = day.padStart(2, '0');
+            normalizedDate = `${paddedMonth}/${paddedDay}/${fullYear}`;
           }
           depSchedule[normalizedDate] = value;
         }
