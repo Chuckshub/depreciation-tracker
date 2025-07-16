@@ -21,6 +21,14 @@ interface UploadResponse {
 
 export async function POST(request: NextRequest): Promise<NextResponse<UploadResponse>> {
   try {
+    // Check if Firebase is properly configured
+    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+      return NextResponse.json({
+        success: false,
+        message: 'Firebase is not configured. Please set up your Firebase environment variables.'
+      }, { status: 500 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const clearExisting = formData.get('clearExisting') === 'true';

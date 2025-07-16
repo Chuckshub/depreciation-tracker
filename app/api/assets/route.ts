@@ -165,6 +165,12 @@ const sampleAssets: Asset[] = [
 
 export async function GET() {
   try {
+    // Check if Firebase is properly configured
+    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+      console.warn('Firebase not configured, returning sample data');
+      return NextResponse.json({ assets: sampleAssets });
+    }
+
     // Try to get assets from Firestore
     const assetsCollection = collection(db, 'assets');
     const assetsSnapshot = await getDocs(assetsCollection);
