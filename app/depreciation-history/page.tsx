@@ -76,6 +76,8 @@ export default function DepreciationHistoryPage() {
   const [glBalances, setGlBalances] = useState<Record<string, number>>({});
   const [editingGlCell, setEditingGlCell] = useState<string | null>(null);
   const [downloadingExcel, setDownloadingExcel] = useState(false);
+  const [selectedJEMonth, setSelectedJEMonth] = useState<string>('');
+  const [downloadingJE, setDownloadingJE] = useState(false);
   const router = useRouter();
 
   const monthKeys = get2025MonthKeys();
@@ -213,7 +215,7 @@ export default function DepreciationHistoryPage() {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `depreciation-reconciliation-${new Date().toISOString().split('T')[0]}.xlsx`;
+      a.download = `depreciation-reconciliation-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -224,6 +226,48 @@ export default function DepreciationHistoryPage() {
       setError(error instanceof Error ? error.message : 'Failed to download reconciliation');
     } finally {
       setDownloadingExcel(false);
+    }
+  };
+
+  const handleDownloadJournalEntry = async () => {
+    if (!selectedJEMonth) {
+      alert('Please select a month for the journal entry.');
+      return;
+    }
+
+    setDownloadingJE(true);
+    try {
+      const response = await fetch('/api/export/journal-entry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          assets: sortedAssets,
+          selectedMonth: selectedJEMonth
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Journal Entry export');
+      }
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `journal-entry-${selectedJEMonth}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading journal entry:', error);
+      setError(error instanceof Error ? error.message : 'Failed to download journal entry');
+    } finally {
+      setDownloadingJE(false);
     }
   };
 
@@ -350,6 +394,47 @@ export default function DepreciationHistoryPage() {
                 </span>
               )}
             </button>
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedJEMonth}
+                onChange={(e) => setSelectedJEMonth(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Month for JE</option>
+                {monthKeys.map(monthKey => {
+                  const date = new Date(monthKey);
+                  const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                  return (
+                    <option key={monthKey} value={monthKey}>
+                      {monthName}
+                    </option>
+                  );
+                })}
+              </select>
+              <button
+                onClick={handleDownloadJournalEntry}
+                disabled={downloadingJE || !selectedJEMonth}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  downloadingJE || !selectedJEMonth
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-purple-600 hover:bg-purple-700'
+                } text-white`}
+              >
+                {downloadingJE ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating JE...
+                  </span>
+                ) : (
+                  <span className="flex items-center">
+                    📝 Download Journal Entry
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

@@ -38,8 +38,9 @@ export async function POST(request: NextRequest) {
     return new NextResponse(csvContent, {
       status: 200,
       headers: {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="depreciation-reconciliation-${new Date().toISOString().split('T')[0]}.csv"`
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="depreciation-reconciliation-${new Date().toISOString().split('T')[0]}.csv"`,
+        'Cache-Control': 'no-cache'
       }
     });
     
