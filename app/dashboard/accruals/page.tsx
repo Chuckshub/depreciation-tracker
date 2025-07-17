@@ -2,7 +2,7 @@
 
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { Button } from "@/components/ui/button"
-import { Upload, DollarSign, Users, TrendingUp, Calendar, FileText, Download } from "lucide-react"
+import { Upload, DollarSign, Users, TrendingUp, FileText, Download } from "lucide-react"
 import { useState, useRef } from "react"
 import { Accrual, AccrualSummary } from "@/types/accrual"
 import { AccrualsCSVParser } from "@/lib/accruals-csv-parser"
@@ -239,8 +239,8 @@ export default function AccrualsPage() {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(value: any) {
-            return '$' + value.toLocaleString()
+          callback: function(value: string | number) {
+            return '$' + Number(value).toLocaleString()
           }
         }
       }
