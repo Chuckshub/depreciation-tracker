@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import {
   Calculator,
   CreditCard,
+  FileText,
   Home,
   Settings,
   TrendingUp,
@@ -18,6 +19,7 @@ const navigation = [
   { name: "Assets", href: "/dashboard/assets", icon: Calculator },
   { name: "Depreciation History", href: "/dashboard/depreciation-history", icon: TrendingUp },
   { name: "Prepaids", href: "/dashboard/prepaids", icon: CreditCard },
+  { name: "Accruals", href: "/dashboard/accruals", icon: FileText },
   { name: "Upload Data", href: "/dashboard/upload", icon: Upload },
 ]
 
