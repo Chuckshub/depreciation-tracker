@@ -18,7 +18,8 @@ const sampleAccruals: Accrual[] = [
     accrualJEAccountCR: '20005',
     balance: 40500.00,
     monthlyEntries: {
-      '6/25': { reversal: -40500.00, accrual: 40500.00 }
+      '6/25': { reversal: -40500.00, accrual: 40500.00 },
+      '7/25': { reversal: -40500.00, accrual: 40500.00 }
     }
   },
   {
@@ -29,7 +30,8 @@ const sampleAccruals: Accrual[] = [
     accrualJEAccountCR: '20005',
     balance: 17245.00,
     monthlyEntries: {
-      '6/25': { reversal: -17245.00, accrual: 17245.00 }
+      '6/25': { reversal: -17245.00, accrual: 17245.00 },
+      '7/25': { reversal: -17245.00, accrual: 17245.00 }
     }
   },
   {
@@ -40,7 +42,8 @@ const sampleAccruals: Accrual[] = [
     accrualJEAccountCR: '20005',
     balance: 52925.05,
     monthlyEntries: {
-      '6/25': { reversal: -31319.87, accrual: 52925.05 }
+      '6/25': { reversal: -31319.87, accrual: 52925.05 },
+      '7/25': { reversal: -52925.05, accrual: 52925.05 }
     }
   },
   {
@@ -51,7 +54,8 @@ const sampleAccruals: Accrual[] = [
     accrualJEAccountCR: '20005',
     balance: 14765.91,
     monthlyEntries: {
-      '6/25': { reversal: -18000.00, accrual: 14765.91 }
+      '6/25': { reversal: -18000.00, accrual: 14765.91 },
+      '7/25': { reversal: -14765.91, accrual: 14765.91 }
     }
   },
   {
@@ -62,7 +66,7 @@ const sampleAccruals: Accrual[] = [
     accrualJEAccountCR: '20005',
     balance: 24598.17,
     monthlyEntries: {
-      '7/25': { reversal: 0, accrual: 24598.17 }
+      '7/25': { reversal: -24598.17, accrual: 24598.17 }
     }
   },
   {
@@ -73,7 +77,7 @@ const sampleAccruals: Accrual[] = [
     accrualJEAccountCR: '20005',
     balance: 10000.00,
     monthlyEntries: {
-      '7/25': { reversal: 0, accrual: 10000.00 }
+      '7/25': { reversal: -10000.00, accrual: 10000.00 }
     }
   },
   {
@@ -84,7 +88,7 @@ const sampleAccruals: Accrual[] = [
     accrualJEAccountCR: '20005',
     balance: 2437.50,
     monthlyEntries: {
-      '7/25': { reversal: 0, accrual: 2437.50 }
+      '7/25': { reversal: -2437.50, accrual: 2437.50 }
     }
   }
 ]
