@@ -232,20 +232,22 @@ export function EditableAccrualsTable({ initialData = [], onDataChange }: Editab
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={handleCellSave}
           onKeyDown={handleKeyDown}
-          className="w-full h-full px-2 py-1 border-0 outline-none bg-blue-50 focus:bg-blue-100"
+          className="w-full h-full px-2 py-1 border-2 border-blue-500 outline-none bg-white text-gray-900 focus:bg-blue-50"
         />
       )
     }
 
     let displayValue = ''
-    let cellClass = 'px-2 py-1 cursor-pointer hover:bg-gray-50 min-h-[32px] flex items-center'
+    let cellClass = 'px-2 py-1 cursor-pointer hover:bg-gray-50 min-h-[32px] flex items-center text-gray-900'
 
     if (monthKey && type) {
       const entry = accrual.monthlyEntries[monthKey]
       const value = entry ? entry[type] : 0
       displayValue = value !== 0 ? formatCurrency(value) : ''
       if (type === 'reversal' && value < 0) {
-        cellClass += ' text-red-600'
+        cellClass = cellClass.replace('text-gray-900', 'text-red-600')
+      } else if (value !== 0) {
+        cellClass = cellClass.replace('text-gray-900', 'text-gray-900')
       }
     } else {
       switch (field) {
@@ -263,7 +265,7 @@ export function EditableAccrualsTable({ initialData = [], onDataChange }: Editab
           break
         case 'balance':
           displayValue = formatCurrency(accrual.balance)
-          cellClass += ' font-semibold bg-gray-50'
+          cellClass = cellClass.replace('text-gray-900', 'text-gray-900') + ' font-semibold bg-gray-50'
           break
       }
     }
@@ -336,31 +338,31 @@ export function EditableAccrualsTable({ initialData = [], onDataChange }: Editab
             <tbody>
               {data.map((accrual, index) => (
                 <tr key={accrual.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="border-r border-gray-200">
+                  <td className="border-r border-gray-200 text-gray-900">
                     {renderCell(accrual, 'vendor')}
                   </td>
-                  <td className="border-r border-gray-200">
+                  <td className="border-r border-gray-200 text-gray-900">
                     {renderCell(accrual, 'description')}
                   </td>
-                  <td className="border-r border-gray-200">
+                  <td className="border-r border-gray-200 text-gray-900">
                     {renderCell(accrual, 'accrualJEAccountDR')}
                   </td>
-                  <td className="border-r border-gray-200">
+                  <td className="border-r border-gray-200 text-gray-900">
                     {renderCell(accrual, 'accrualJEAccountCR')}
                   </td>
                   {MONTH_COLUMNS.map(month => (
                     <td key={month.key} className="border-r border-gray-200 p-0">
                       <div className="flex">
-                        <div className="flex-1 border-r border-gray-200">
+                        <div className="flex-1 border-r border-gray-200 text-gray-900">
                           {renderCell(accrual, 'monthlyEntry', month.key, 'reversal')}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 text-gray-900">
                           {renderCell(accrual, 'monthlyEntry', month.key, 'accrual')}
                         </div>
                       </div>
                     </td>
                   ))}
-                  <td className="border-r border-gray-200">
+                  <td className="border-r border-gray-200 text-gray-900">
                     {renderCell(accrual, 'balance')}
                   </td>
                 </tr>
