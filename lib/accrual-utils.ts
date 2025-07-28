@@ -191,6 +191,11 @@ export class AccrualUtils {
         bValue = bValue.getTime();
       }
 
+      // Handle undefined values
+      if (aValue === undefined && bValue === undefined) return 0;
+      if (aValue === undefined) return direction === 'asc' ? -1 : 1;
+      if (bValue === undefined) return direction === 'asc' ? 1 : -1;
+
       if (aValue < bValue) return direction === 'asc' ? -1 : 1;
       if (aValue > bValue) return direction === 'asc' ? 1 : -1;
       return 0;

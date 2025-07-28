@@ -42,7 +42,7 @@ export async function GET() {
         vendorCount: new Set(sampleAccruals.map(a => a.vendor)).size
       }
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch accruals' },
       { status: 500 }
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     };
     
     return NextResponse.json(newAccrual, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to create accrual' },
       { status: 500 }

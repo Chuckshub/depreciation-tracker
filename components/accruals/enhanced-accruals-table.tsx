@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Download, Filter, Search, X } from "lucide-react"
 import { 
   Accrual, 
   AccrualFilter, 
   AccrualSort, 
-  AccrualSortField, 
   MonthColumn
 } from "@/types/accrual"
 
@@ -16,13 +15,6 @@ interface EnhancedAccrualsTableProps {
   onDataChange?: (data: Accrual[]) => void
   balanceSheetAmount?: number
   onBalanceSheetChange?: (amount: number) => void
-}
-
-interface EditingCell {
-  rowId: string
-  field: string
-  monthKey?: string
-  type?: 'reversal' | 'accrual'
 }
 
 // Generate month columns for the current year
@@ -60,7 +52,7 @@ export function EnhancedAccrualsTable({
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [sort, setSort] = useState<AccrualSort | null>(null)
+  const [sort] = useState<AccrualSort | null>(null)
   const [filter, setFilter] = useState<AccrualFilter>({})
 
   // Memoized filtered and sorted data
