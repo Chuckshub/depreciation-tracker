@@ -9,8 +9,6 @@ import {
   Search, 
   BarChart3, 
   Table, 
-  Save,
-  Trash2,
   Calculator,
   FileSpreadsheet
 } from 'lucide-react'
@@ -18,11 +16,8 @@ import {
   AccrualVendor,
   AccrualRecord,
   MonthColumn,
-  AccrualState,
   EditingCell,
-  AccrualFormData,
   FilterOptions,
-  MonthlyEntry,
   AccrualSummary
 } from '@/types/ultimate-accrual'
 
@@ -800,7 +795,7 @@ export function UltimateAccrualTracker({ className }: UltimateAccrualTrackerProp
         <ul className="space-y-1 text-xs">
           <li>• Click any cell to edit reversal or accrual amounts</li>
           <li>• Press Enter to save, Escape to cancel</li>
-          <li>• Use "Add Vendor" to create new accrual entries</li>
+          <li>• Use &quot;Add Vendor&quot; to create new accrual entries</li>
           <li>• Balance is automatically calculated from monthly entries</li>
           <li>• Export to CSV for external analysis</li>
         </ul>
