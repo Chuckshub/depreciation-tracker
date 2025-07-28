@@ -2,14 +2,12 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Save, Download, Filter, Search, ChevronUp, ChevronDown, X } from "lucide-react"
+import { Download, Filter, Search, X } from "lucide-react"
 import { 
   Accrual, 
-  AccrualEntry, 
   AccrualFilter, 
   AccrualSort, 
   AccrualSortField, 
-  SortDirection,
   MonthColumn
 } from "@/types/accrual"
 
@@ -59,14 +57,11 @@ export function EnhancedAccrualsTable({
   onBalanceSheetChange
 }: EnhancedAccrualsTableProps) {
   const [data, setData] = useState<Accrual[]>(initialData)
-  const [editingCell, setEditingCell] = useState<EditingCell | null>(null)
-  const [editValue, setEditValue] = useState('')
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [sort, setSort] = useState<AccrualSort | null>(null)
   const [filter, setFilter] = useState<AccrualFilter>({})
-  const inputRef = useRef<HTMLInputElement>(null)
 
   // Memoized filtered and sorted data
   const processedData = useMemo(() => {
@@ -104,13 +99,16 @@ export function EnhancedAccrualsTable({
     // Apply sorting
     if (sort) {
       result.sort((a, b) => {
-        let aValue: any = a[sort.field]
-        let bValue: any = b[sort.field]
+        let aValue: string | number | Date | undefined = a[sort.field]
+        let bValue: string | number | Date | undefined = b[sort.field]
 
-        if (typeof aValue === 'string') {
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
           aValue = aValue.toLowerCase()
           bValue = bValue.toLowerCase()
         }
+
+        if (aValue === undefined) aValue = ''
+        if (bValue === undefined) bValue = ''
 
         if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1
         if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1
@@ -121,32 +119,12 @@ export function EnhancedAccrualsTable({
     return result
   }, [data, searchTerm, filter, sort])
 
-  useEffect(() => {
-    if (editingCell && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
-    }
-  }, [editingCell])
-
   const formatCurrency = useCallback((amount: number) => {
     if (amount === 0) return ''
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(Math.abs(amount))
-  }, [])
-
-  const parseNumber = useCallback((value: string): number => {
-    if (!value || value.trim() === '') return 0
-    const cleaned = value.replace(/[^\d.-]/g, '')
-    const parsed = parseFloat(cleaned)
-    return isNaN(parsed) ? 0 : parsed
-  }, [])
-
-  const calculateBalance = useCallback((accrual: Accrual): number => {
-    return Object.values(accrual.monthlyEntries).reduce((sum, entry) => {
-      return sum + entry.accrual + entry.reversal
-    }, 0)
   }, [])
 
   const calculateSummary = useCallback(() => {
@@ -168,36 +146,6 @@ export function EnhancedAccrualsTable({
       vendorCount: new Set(processedData.map(a => a.vendor)).size
     }
   }, [processedData, balanceSheetAmount])
-
-  const handleSort = useCallback((field: AccrualSortField) => {
-    setSort(prevSort => {
-      if (prevSort?.field === field) {
-        return {
-          field,
-          direction: prevSort.direction === 'asc' ? 'desc' : 'asc'
-        }
-      }
-      return { field, direction: 'asc' }
-    })
-  }, [])
-
-  const handleSelectRow = useCallback((id: string, selected: boolean) => {
-    setSelectedRows(prev => {
-      if (selected) {
-        return [...prev, id]
-      } else {
-        return prev.filter(rowId => rowId !== id)
-      }
-    })
-  }, [])
-
-  const handleSelectAll = useCallback((selected: boolean) => {
-    if (selected) {
-      setSelectedRows(processedData.map(a => a.id))
-    } else {
-      setSelectedRows([])
-    }
-  }, [processedData])
 
   const handleBulkDelete = useCallback(() => {
     if (selectedRows.length === 0) return

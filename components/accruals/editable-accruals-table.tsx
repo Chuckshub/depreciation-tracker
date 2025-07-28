@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Save, Download } from "lucide-react"
-import { Accrual, AccrualEntry } from "@/types/accrual"
+import { Plus, Download } from "lucide-react"
+import { Accrual } from "@/types/accrual"
 
 interface EditableAccrualsTableProps {
   initialData?: Accrual[]

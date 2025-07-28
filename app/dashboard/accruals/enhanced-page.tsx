@@ -3,10 +3,9 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Upload, BarChart3, Table, Download, Plus, AlertCircle, CheckCircle } from "lucide-react"
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef, useCallback } from "react"
 import { 
   Accrual, 
-  AccrualSummary, 
   AccrualCSVImportResult 
 } from "@/types/accrual"
 import { EnhancedAccrualsTable } from "@/components/accruals/enhanced-accruals-table"
@@ -112,9 +111,8 @@ export default function EnhancedAccrualsPage() {
     setUploadResult(null)
 
     try {
-      const text = await file.text()
-      
-      // Use the enhanced CSV parser
+      // For demo purposes, simulate parsing
+      // In real implementation, use: EnhancedAccrualsCSVParser.parseCSVToAccruals(await file.text())
       const result = {
         accruals: [],
         errors: [],
