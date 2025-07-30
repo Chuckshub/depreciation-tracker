@@ -20,6 +20,7 @@ import {
   FilterOptions,
   AccrualSummary
 } from '@/types/ultimate-accrual'
+import { Accrual } from '@/types/accrual'
 
 // Generate months for the current year
 const generateMonths = (): MonthColumn[] => {
@@ -196,9 +197,17 @@ const initialRecords: AccrualRecord[] = [
 
 interface UltimateAccrualTrackerProps {
   className?: string
+  initialData?: Accrual[]
+  onDataChange?: (data: Accrual[]) => void
+  loading?: boolean
 }
 
-export function UltimateAccrualTracker({ className }: UltimateAccrualTrackerProps) {
+export function UltimateAccrualTracker({ 
+  className, 
+  initialData, 
+  onDataChange, 
+  loading = false 
+}: UltimateAccrualTrackerProps) {
   // State management
   const [vendors, setVendors] = useState<AccrualVendor[]>(initialVendors)
   const [records, setRecords] = useState<AccrualRecord[]>(initialRecords)

@@ -39,6 +39,7 @@ export interface CreateAccrualRequest {
   balance?: number
   monthlyEntries?: Record<string, AccrualEntry>
   notes?: string
+  isActive?: boolean
 }
 
 export interface UpdateAccrualRequest extends Partial<CreateAccrualRequest> {

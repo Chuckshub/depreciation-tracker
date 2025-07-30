@@ -208,9 +208,17 @@ const initialRecords: PrepaidRecord[] = [
 
 interface UltimatePrepaidTrackerProps {
   className?: string
+  initialData?: PrepaidRecord[]
+  onDataChange?: (data: PrepaidRecord[]) => void
+  loading?: boolean
 }
 
-export function UltimatePrepaidTracker({ className }: UltimatePrepaidTrackerProps) {
+export function UltimatePrepaidTracker({ 
+  className, 
+  initialData, 
+  onDataChange, 
+  loading = false 
+}: UltimatePrepaidTrackerProps) {
   // State management
   const [vendors, setVendors] = useState<PrepaidVendor[]>(initialVendors)
   const [records, setRecords] = useState<PrepaidRecord[]>(initialRecords)
