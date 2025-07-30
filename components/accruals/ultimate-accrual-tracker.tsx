@@ -211,6 +211,74 @@ export function UltimateAccrualTracker({
   // State management
   const [vendors, setVendors] = useState<AccrualVendor[]>(initialVendors)
   const [records, setRecords] = useState<AccrualRecord[]>(initialRecords)
+  const isInitializing = useRef(false)
+  
+  // Initialize with provided data
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      isInitializing.current = true
+      // Convert Accrual[] to AccrualRecord[] format
+      const convertedRecords: AccrualRecord[] = initialData.map(accrual => ({
+        id: accrual.id,
+        vendorId: accrual.id, // Use id as vendorId for now
+        vendor: {
+          id: accrual.id,
+          name: accrual.vendor,
+          description: accrual.description || '',
+          isActive: accrual.isActive ?? true,
+          createdAt: accrual.createdAt || new Date(),
+          updatedAt: accrual.updatedAt || new Date()
+        },
+        monthlyEntries: Object.fromEntries(
+          Object.entries(accrual.monthlyEntries || {}).map(([key, entry]) => [
+            key,
+            {
+              reversal: entry.reversal,
+              accrual: entry.accrual,
+              notes: entry.notes
+            }
+          ])
+        ),
+        balance: accrual.balance,
+        isActive: accrual.isActive ?? true,
+        createdAt: accrual.createdAt || new Date(),
+        updatedAt: accrual.updatedAt || new Date()
+      }))
+      setRecords(convertedRecords)
+      setTimeout(() => {
+        isInitializing.current = false
+      }, 0)
+    }
+  }, [initialData])
+  
+  // Convert AccrualRecord[] to Accrual[] and call onDataChange
+  useEffect(() => {
+    if (onDataChange && !isInitializing.current) {
+      const convertedAccruals: Accrual[] = records.map(record => ({
+        id: record.id,
+        vendor: record.vendor.name,
+        description: record.vendor.description || '',
+        accrualJEAccountDR: '64061', // Default values - should be configurable
+        accrualJEAccountCR: '20005',
+        balance: record.balance,
+        monthlyEntries: Object.fromEntries(
+          Object.entries(record.monthlyEntries).map(([key, entry]) => [
+            key,
+            {
+              reversal: entry.reversal,
+              accrual: entry.accrual,
+              notes: entry.notes
+            }
+          ])
+        ),
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+        isActive: record.isActive,
+        notes: ''
+      }))
+      onDataChange(convertedAccruals)
+    }
+  }, [records, onDataChange])
   const [months] = useState<MonthColumn[]>(generateMonths())
   const [balanceSheetAmount, setBalanceSheetAmount] = useState<number>(0)
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null)

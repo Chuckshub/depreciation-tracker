@@ -220,6 +220,25 @@ export function UltimatePrepaidTracker({
   // State management
   const [vendors, setVendors] = useState<PrepaidVendor[]>(initialVendors)
   const [records, setRecords] = useState<PrepaidRecord[]>(initialRecords)
+  const isInitializing = useRef(false)
+  
+  // Initialize with provided data
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      isInitializing.current = true
+      setRecords(initialData)
+      setTimeout(() => {
+        isInitializing.current = false
+      }, 0)
+    }
+  }, [initialData])
+  
+  // Call onDataChange when records change
+  useEffect(() => {
+    if (onDataChange && !isInitializing.current) {
+      onDataChange(records)
+    }
+  }, [records, onDataChange])
   const [months] = useState<MonthColumn[]>(generateMonths())
   const [balanceSheetAmount, setBalanceSheetAmount] = useState<number>(31500)
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null)
