@@ -42,8 +42,10 @@ function convertFirestoreToAccrual(doc: { id: string; data: () => Record<string,
   return {
     ...data,
     id: doc.id,
-    createdAt: data.createdAt?.toDate() || new Date(),
-    updatedAt: data.updatedAt?.toDate() || new Date()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createdAt: (data.createdAt as any)?.toDate() || new Date(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updatedAt: (data.updatedAt as any)?.toDate() || new Date()
   } as Accrual;
 }
 

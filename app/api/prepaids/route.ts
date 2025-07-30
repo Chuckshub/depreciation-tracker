@@ -27,15 +27,20 @@ const samplePrepaids = [
   }
 ];
 
-function convertFirestoreToPrepaid(doc: { id: string; data: () => Record<string, unknown> }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function convertFirestoreToPrepaid(doc: { id: string; data: () => Record<string, unknown> }): any {
   const data = doc.data();
   return {
     ...data,
     id: doc.id,
-    startDate: data.startDate?.toDate() || new Date(),
-    endDate: data.endDate?.toDate() || new Date(),
-    createdAt: data.createdAt?.toDate() || new Date(),
-    updatedAt: data.updatedAt?.toDate() || new Date()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    startDate: (data.startDate as any)?.toDate() || new Date(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    endDate: (data.endDate as any)?.toDate() || new Date(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createdAt: (data.createdAt as any)?.toDate() || new Date(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updatedAt: (data.updatedAt as any)?.toDate() || new Date()
   };
 }
 
