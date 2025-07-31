@@ -264,8 +264,9 @@ export default function ReconciliationPage() {
       const data = await response.json();
       
       // Handle both array format and object with assets property
-      const assetArray = Array.isArray(data) ? data : data.assets || [];
-      setAssets(assetArray);
+      const assetArray = Array.isArray(data) ? data : (data?.assets || []);
+      // Ensure we always have an array
+      setAssets(Array.isArray(assetArray) ? assetArray : []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load asset data';
       setError(errorMessage);
@@ -533,7 +534,7 @@ export default function ReconciliationPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {assets.map((asset, index) => (
+                {(assets || []).map((asset, index) => (
                   <tr key={asset.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
                       <div className="font-medium">{asset.asset}</div>

@@ -175,7 +175,7 @@ export async function GET(request: Request) {
     const assetType = searchParams.get('assetType') as AssetType | null;
     
     // Check if Firebase is properly configured
-    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+    if (!db || !process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === 'placeholder') {
       console.warn('Firebase not configured, returning sample data');
       const filteredAssets = assetType 
         ? sampleAssets.filter(asset => asset.assetType === assetType)
@@ -213,6 +213,9 @@ export async function GET(request: Request) {
     console.error('Error fetching assets:', error);
     
     // Fallback to sample data if Firestore is not available
-    return NextResponse.json({ assets: sampleAssets });
+    return NextResponse.json({ 
+      assets: sampleAssets,
+      error: 'Fallback to sample data due to database error'
+    }, { status: 200 }); // Return 200 with fallback data instead of error
   }
 }

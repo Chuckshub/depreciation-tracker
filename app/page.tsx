@@ -1,13 +1,15 @@
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Calculator, TrendingUp, BarChart3, Shield } from 'lucide-react'
 
 export default function HomePage() {
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // Redirect to dashboard after a brief moment to show the landing
     const timer = setTimeout(() => {
       router.push('/dashboard')
@@ -15,6 +17,11 @@ export default function HomePage() {
 
     return () => clearTimeout(timer)
   }, [router])
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
