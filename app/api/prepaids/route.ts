@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
+// In-memory storage for when Firebase is not configured
+// Using flexible type to match sample data structure
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let inMemoryPrepaids: any[] = [];
+let isInMemoryInitialized = false;
+
 // Sample data for fallback when Firebase is not configured
 const samplePrepaids = [
   {
@@ -50,9 +56,16 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get('isActive');
     
     // Check if Firebase is properly configured
-    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-      console.warn('Firebase not configured, returning sample data');
-      let filteredPrepaids = samplePrepaids;
+    if (!db || !process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === 'placeholder') {
+      console.warn('Firebase not configured, using in-memory storage');
+      
+      // Initialize in-memory storage with sample data if not already done
+      if (!isInMemoryInitialized) {
+        inMemoryPrepaids = [...samplePrepaids];
+        isInMemoryInitialized = true;
+      }
+      
+      let filteredPrepaids = inMemoryPrepaids;
       
       if (isActive !== null) {
         filteredPrepaids = filteredPrepaids.filter(p => 
@@ -205,13 +218,31 @@ export async function PUT(request: NextRequest) {
       );
     }
     
-    // Check if Firebase is properly configured
-    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-      console.warn('Firebase not configured, returning mock response');
-      return NextResponse.json({ success: true });
-    }
-    
     const { id, ...updateData } = body;
+    
+    // Check if Firebase is properly configured
+    if (!db || !process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === 'placeholder') {
+      console.warn('Firebase not configured, updating in-memory storage');
+      
+      // Initialize in-memory storage if not already done
+      if (!isInMemoryInitialized) {
+        inMemoryPrepaids = [...samplePrepaids];
+        isInMemoryInitialized = true;
+      }
+      
+      // Find and update the prepaid in memory
+      const index = inMemoryPrepaids.findIndex(p => p.id === id);
+      if (index !== -1) {
+        inMemoryPrepaids[index] = {
+          ...inMemoryPrepaids[index],
+          ...updateData,
+          updatedAt: new Date()
+        };
+        return NextResponse.json({ success: true, prepaid: inMemoryPrepaids[index] });
+      } else {
+        return NextResponse.json({ error: 'Prepaid not found' }, { status: 404 });
+      }
+    }
     if (!db) {
       throw new Error('Database not initialized');
     }

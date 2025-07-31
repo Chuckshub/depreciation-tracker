@@ -213,7 +213,7 @@ export function UltimateAccrualTracker({
   
   // Initialize with provided data
   useEffect(() => {
-    if (initialData && initialData.length > 0) {
+    if (initialData && Array.isArray(initialData) && initialData.length > 0) {
       isInitializing.current = true
       // Convert Accrual[] to AccrualRecord[] format
       const convertedRecords: AccrualRecord[] = initialData.map(accrual => ({
@@ -254,8 +254,8 @@ export function UltimateAccrualTracker({
     if (onDataChange && !isInitializing.current) {
       const convertedAccruals: Accrual[] = records.map(record => ({
         id: record.id,
-        vendor: record.vendor.name,
-        description: record.vendor.description || '',
+        vendor: record.vendor?.name || 'Unknown Vendor',
+        description: record.vendor?.description || '',
         accrualJEAccountDR: '64061', // Default values - should be configurable
         accrualJEAccountCR: '20005',
         balance: record.balance,
@@ -338,8 +338,8 @@ export function UltimateAccrualTracker({
       
       if (filterOptions.searchTerm) {
         const searchLower = filterOptions.searchTerm.toLowerCase()
-        if (!record.vendor.name.toLowerCase().includes(searchLower) &&
-            !record.vendor.description?.toLowerCase().includes(searchLower)) {
+        if (!record.vendor?.name?.toLowerCase().includes(searchLower) &&
+            !record.vendor?.description?.toLowerCase().includes(searchLower)) {
           return false
         }
       }
@@ -468,8 +468,8 @@ export function UltimateAccrualTracker({
     
     const rows = filteredRecords.map(record => {
       const row = [
-        record.vendor.name,
-        record.vendor.description || ''
+        record.vendor?.name || 'Unknown Vendor',
+        record.vendor?.description || ''
       ]
       
       months.forEach(month => {
@@ -755,8 +755,8 @@ export function UltimateAccrualTracker({
                     {/* Vendor Name */}
                     <td className="sticky left-0 bg-inherit px-4 py-3 border-r border-gray-200">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{record.vendor.name}</div>
-                        {record.vendor.description && (
+                        <div className="text-sm font-medium text-gray-900">{record.vendor?.name || 'Unknown Vendor'}</div>
+                        {record.vendor?.description && (
                           <div className="text-xs text-gray-500">{record.vendor.description}</div>
                         )}
                       </div>
