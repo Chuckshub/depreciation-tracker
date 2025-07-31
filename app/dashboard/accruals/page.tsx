@@ -72,7 +72,6 @@ export default function AccrualsPage() {
         <UltimateAccrualTracker 
           initialData={localAccruals}
           onDataChange={handleDataChange}
-          loading={loading}
         />
       </div>
     </DashboardLayout>

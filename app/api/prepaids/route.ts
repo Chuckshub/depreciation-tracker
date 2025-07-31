@@ -73,6 +73,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch from Firestore
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const prepaidsCollection = collection(db, 'prepaids');
     let prepaidsQuery = query(prepaidsCollection, orderBy('updatedAt', 'desc'));
     
@@ -87,7 +90,8 @@ export async function GET(request: NextRequest) {
     if (prepaidsSnapshot.empty) {
       // Initialize with sample data if collection is empty
       for (const samplePrepaid of samplePrepaids) {
-        const { id: _, ...prepaidData } = samplePrepaid;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _id, ...prepaidData } = samplePrepaid;
         const docData = {
           ...prepaidData,
           startDate: Timestamp.fromDate(prepaidData.startDate),
@@ -165,6 +169,9 @@ export async function POST(request: NextRequest) {
       updatedAt: now
     };
     
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const prepaidsCollection = collection(db, 'prepaids');
     const docRef = await addDoc(prepaidsCollection, prepaidData);
     
@@ -205,6 +212,9 @@ export async function PUT(request: NextRequest) {
     }
     
     const { id, ...updateData } = body;
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const prepaidRef = doc(db, 'prepaids', id);
     
     const updatePayload = {
@@ -250,6 +260,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
     
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const prepaidRef = doc(db, 'prepaids', id);
     await deleteDoc(prepaidRef);
     

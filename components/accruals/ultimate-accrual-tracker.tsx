@@ -199,14 +199,12 @@ interface UltimateAccrualTrackerProps {
   className?: string
   initialData?: Accrual[]
   onDataChange?: (data: Accrual[]) => void
-  loading?: boolean
 }
 
 export function UltimateAccrualTracker({ 
   className, 
   initialData, 
-  onDataChange, 
-  loading = false 
+  onDataChange
 }: UltimateAccrualTrackerProps) {
   // State management
   const [vendors, setVendors] = useState<AccrualVendor[]>(initialVendors)

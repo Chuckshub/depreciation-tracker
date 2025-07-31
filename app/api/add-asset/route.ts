@@ -47,6 +47,9 @@ export async function POST(request: NextRequest) {
     }
     
     // Get existing assets from Firestore
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const assetsCollection = collection(db, 'assets');
     const assetsSnapshot = await getDocs(assetsCollection);
     const existingAssets: Asset[] = assetsSnapshot.docs.map(doc => ({

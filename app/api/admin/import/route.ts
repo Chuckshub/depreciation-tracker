@@ -95,11 +95,14 @@ export async function GET(request: NextRequest) {
 }
 
 async function handleClear(): Promise<NextResponse> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
   const collectionRef = collection(db, 'assets');
   const snapshot = await getDocs(collectionRef);
   
   const deletePromises = snapshot.docs.map(docSnapshot => 
-    deleteDoc(doc(db, 'assets', docSnapshot.id))
+    deleteDoc(doc(db!, 'assets', docSnapshot.id))
   );
   
   await Promise.all(deletePromises);
@@ -112,6 +115,10 @@ async function handleClear(): Promise<NextResponse> {
 }
 
 async function handleImport(assets: Asset[], clearExisting: boolean): Promise<NextResponse> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  
   let deletedCount = 0;
   
   // Clear existing data if requested
@@ -120,7 +127,7 @@ async function handleImport(assets: Asset[], clearExisting: boolean): Promise<Ne
     const snapshot = await getDocs(collectionRef);
     
     const deletePromises = snapshot.docs.map(docSnapshot => 
-      deleteDoc(doc(db, 'assets', docSnapshot.id))
+      deleteDoc(doc(db!, 'assets', docSnapshot.id))
     );
     
     await Promise.all(deletePromises);
@@ -202,6 +209,9 @@ async function handleImport(assets: Asset[], clearExisting: boolean): Promise<Ne
 }
 
 async function handleStats(): Promise<NextResponse> {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
   const collectionRef = collection(db, 'assets');
   const snapshot = await getDocs(collectionRef);
   

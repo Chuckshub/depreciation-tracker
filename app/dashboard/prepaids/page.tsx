@@ -72,7 +72,6 @@ export default function PrepaidsPage() {
         <UltimatePrepaidTracker 
           initialData={localPrepaids}
           onDataChange={handleDataChange}
-          loading={loading}
         />
       </div>
     </DashboardLayout>

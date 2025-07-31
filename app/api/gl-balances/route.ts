@@ -30,6 +30,9 @@ export async function POST(request: NextRequest) {
     const validAssetType = assetType || 'computer-equipment';
 
     // Save GL balances to Firestore with asset type specificity
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const glBalancesRef = doc(db, 'settings', `gl-balances-${validAssetType}`);
     const glBalancesData: GLBalancesData = {
       glBalances,
@@ -70,6 +73,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get GL balances from Firestore for specific asset type
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const glBalancesRef = doc(db, 'settings', `gl-balances-${assetType}`);
     const glBalancesDoc = await getDoc(glBalancesRef);
 

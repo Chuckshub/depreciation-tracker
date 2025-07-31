@@ -208,14 +208,12 @@ interface UltimatePrepaidTrackerProps {
   className?: string
   initialData?: PrepaidRecord[]
   onDataChange?: (data: PrepaidRecord[]) => void
-  loading?: boolean
 }
 
 export function UltimatePrepaidTracker({ 
   className, 
   initialData, 
-  onDataChange, 
-  loading = false 
+  onDataChange
 }: UltimatePrepaidTrackerProps) {
   // State management
   const [vendors, setVendors] = useState<PrepaidVendor[]>(initialVendors)

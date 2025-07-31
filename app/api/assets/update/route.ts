@@ -23,6 +23,9 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get the document reference
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const assetRef = doc(db, 'assets', asset.id);
     
     // Check if the document exists

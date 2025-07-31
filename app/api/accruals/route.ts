@@ -84,6 +84,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch from Firestore
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const accrualsCollection = collection(db, 'accruals');
     let accrualsQuery = query(accrualsCollection, orderBy('updatedAt', 'desc'));
     
@@ -99,7 +102,8 @@ export async function GET(request: NextRequest) {
     if (accrualsSnapshot.empty) {
       // Initialize with sample data if collection is empty
       for (const sampleAccrual of sampleAccruals) {
-        const { id: _, ...accrualData } = sampleAccrual;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _id, ...accrualData } = sampleAccrual;
         const docData = {
           ...accrualData,
           createdAt: Timestamp.fromDate(new Date()),
@@ -182,6 +186,9 @@ export async function POST(request: NextRequest) {
       notes: body.notes || ''
     };
     
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const accrualsCollection = collection(db, 'accruals');
     const docRef = await addDoc(accrualsCollection, accrualData);
     
@@ -220,6 +227,9 @@ export async function PUT(request: NextRequest) {
     }
     
     const { id, ...updateData } = body;
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const accrualRef = doc(db, 'accruals', id);
     
     const updatePayload = {
@@ -257,6 +267,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
     
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
     const accrualRef = doc(db, 'accruals', id);
     await deleteDoc(accrualRef);
     

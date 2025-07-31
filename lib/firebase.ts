@@ -1,5 +1,5 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 // Check if Firebase is properly configured
 const isFirebaseConfigured = () => {
@@ -18,8 +18,8 @@ const isFirebaseConfigured = () => {
   });
 };
 
-let app: any = null;
-let db: any = null;
+let app: FirebaseApp | null = null;
+let db: Firestore | null = null;
 
 if (isFirebaseConfigured()) {
   const firebaseConfig = {

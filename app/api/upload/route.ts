@@ -83,6 +83,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
       }, { status: 400 });
     }
     
+    if (!db) {
+      throw new Error('Database not initialized');
+    }
+    
     let deletedCount = 0;
     
     // Clear existing data if requested
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
       
       if (snapshot.docs.length > 0) {
         const deletePromises = snapshot.docs.map(docSnapshot => 
-          deleteDoc(doc(db, 'assets', docSnapshot.id))
+          deleteDoc(doc(db!, 'assets', docSnapshot.id))
         );
         
         await Promise.all(deletePromises);
